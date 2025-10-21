@@ -1,0 +1,1408 @@
+
+
+--- FILE: main.cpp ---
+Path: /Users/ivanalejnikov/CLionProjects/Game/main.cpp
+Size: 2183 bytes
+--- BEGIN ---
+#include <iostream>
+#include "./map/Field.h"
+#include "./entites/Player.h"
+#include "./logic/World.h"
+
+void visualizeField(std::vector<std::vector<std::string>> frame, int width, int height) {
+    for (int i = 0; i < height; i++) {
+        std::cout << "|";
+        for (int j = 0; j < width; j++) {
+            int fix = 5 - frame[i][j].size();
+            for (int k = 0; k < fix; k++) std::cout << " ";
+            std::cout << frame[i][j] << "|";
+        }
+        std::cout << std::endl;
+    }
+}
+
+void drawField(Field& field, World& world, std::shared_ptr<Player> player) {
+    std::vector<std::vector<std::string>> pre_frame;
+    int h, w;
+    field.GetSize(w, h);
+    pre_frame.resize(h);
+    for (int i = 0; i < h; i++) {
+        pre_frame[i].resize(w);
+        for (int j = 0; j < w; j++) {
+            std::string str = field.GetCellType(j, i);
+            pre_frame[i][j].push_back(str[0]);
+        }
+    }
+
+    for (const auto& enemy_weak : world.Enemies().GetEnemies()) {
+        if (auto enemy = enemy_weak.lock()) {
+            int x, y;
+            if (field.GetPosEntity(enemy, x, y)) {
+                pre_frame[y][x] += "E ";
+                pre_frame[y][x] += std::to_string(enemy->GetHP());
+            }
+        }
+    }
+
+    for (const auto& building_weak : world.EnemiesBuildings().GetEnemiesBuildings()) {
+        if (auto building = building_weak.lock()) {
+            int x, y;
+            if (field.GetPosEntity(building, x, y)) {
+                pre_frame[y][x] += "B ";
+                pre_frame[y][x] += std::to_string(building->GetHP());
+            }
+        }
+    }
+
+    int x, y;
+    if (field.GetPosEntity(player, x, y)) {
+        pre_frame[y][x] += "P ";
+        pre_frame[y][x] += std::to_string(player->GetHP());
+    }
+
+    visualizeField(pre_frame, w, h);
+}
+
+int main() {
+    std::shared_ptr<Player> player = std::make_shared<Player>(200, 100, 10);
+    Field field(10, 10, 5, 32);
+    World world;
+    world.Init(field, player, 1, 1);
+    drawField(field, world, player);
+
+    while (!player->IsDead()) {
+        world.Update(field, player);
+        drawField(field, world, player);
+        world.DeleteDeadEntites(field);
+    }
+    return 0;
+}
+--- END: main.cpp ---
+
+
+--- FILE: entites/Player.cpp ---
+Path: /Users/ivanalejnikov/CLionProjects/Game/entites/Player.cpp
+Size: 676 bytes
+--- BEGIN ---
+#include "Player.h"
+
+Player::Player()
+	: Entity(),
+	  score_(0),
+	  weapon_(std::make_shared<Weapon>()) {}
+
+Player::Player(int hp, int damage, int attack_radius)
+	: Entity(),
+	  score_(0),
+	  weapon_(std::make_shared<Weapon>(damage, attack_radius)) {
+	hp_ = hp > 0 ? hp : 100;
+}
+
+void Player::ChangeAttackMod() {
+	weapon_->ChangeAttackMod();
+}
+
+bool Player::IsFriendly() const {
+	return true;
+}
+
+int Player::GetAttackRadius() const {
+	return weapon_->GetAttackRadius();
+}
+
+int Player::GetHealth() const {
+	return hp_;
+}
+
+int Player::GetDamage() const {
+	return weapon_->GetDamage();
+}
+
+std::shared_ptr<Entity> Player::clone() const {
+	return std::make_shared<Player>(*this);
+}
+--- END: entites/Player.cpp ---
+
+
+--- FILE: entites/Entity.cpp ---
+Path: /Users/ivanalejnikov/CLionProjects/Game/entites/Entity.cpp
+Size: 772 bytes
+--- BEGIN ---
+#include "Entity.h"
+
+Entity::Entity()
+	: hp_(100),
+	  damage_(10),
+	  can_move_on_cell_(true),
+	  can_hit_on_walking_(false),
+	  not_move_next_turn_(false) {}
+
+int Entity::GetDamage() const {
+	return damage_;
+}
+
+bool Entity::CauseDamage(int caused_damage) {
+	hp_ -= caused_damage;
+	return hp_ <= 0;
+}
+
+bool Entity::IsDead() const {
+	return hp_ <= 0;
+}
+
+bool Entity::CanHit() const {
+	return can_hit_on_walking_;
+}
+
+bool Entity::NotMoveNext() {
+	if (not_move_next_turn_) {
+		not_move_next_turn_ = false;
+		return true;
+	}
+	return false;
+}
+
+bool Entity::IsStatic() const {
+	return !can_move_on_cell_;
+}
+
+bool Entity::IsFriendly() const {
+	return true;
+}
+
+void Entity::SetNotMoveNext(bool status) {
+	not_move_next_turn_ = status;
+}
+
+int Entity::GetHP() const {
+	return hp_;
+}
+--- END: entites/Entity.cpp ---
+
+
+--- FILE: entites/Weapon.cpp ---
+Path: /Users/ivanalejnikov/CLionProjects/Game/entites/Weapon.cpp
+Size: 1122 bytes
+--- BEGIN ---
+#include "Weapon.h"
+
+Weapon::Weapon(int damage, int attack_radius, AttackMod mode)
+	: damage_(damage > 0 ? damage : 50),
+	  attack_radius_(attack_radius > 0 ? attack_radius : 2),
+	  initial_damage_(damage > 0 ? damage : 50),
+	  initial_attack_radius_(attack_radius > 0 ? attack_radius : 2),
+	  attack_mode_(mode) {}
+
+void Weapon::ChangeAttackMod() {
+	if (attack_mode_ == AttackMod::RangeCombat) {
+		// Переход на ближний бой - удваиваем урон, уменьшаем радиус
+		damage_ = initial_damage_ * 2;
+		attack_radius_ = initial_attack_radius_ / 2;
+		if (attack_radius_ < 1) attack_radius_ = 1;  // минимум 1
+		attack_mode_ = AttackMod::CloseCombat;
+	} else {
+		// Переход на дальний бой - возвращаемся к начальным значениям!
+		damage_ = initial_damage_;
+		attack_radius_ = initial_attack_radius_;
+		attack_mode_ = AttackMod::RangeCombat;
+	}
+}
+
+int Weapon::GetDamage() const {
+	return damage_;
+}
+
+int Weapon::GetAttackRadius() const {
+	return attack_radius_;
+}
+
+AttackMod Weapon::GetAttackMode() const {
+	return attack_mode_;
+}
+--- END: entites/Weapon.cpp ---
+
+
+--- FILE: entites/Player.h ---
+Path: /Users/ivanalejnikov/CLionProjects/Game/entites/Player.h
+Size: 458 bytes
+--- BEGIN ---
+#ifndef PLAYER_H
+#define PLAYER_H
+
+#include "Entity.h"
+#include "Weapon.h"
+#include <memory>
+
+class Player : public Entity {
+public:
+	Player();
+	Player(int hp, int damage, int attack_radius);
+	void ChangeAttackMod();
+	bool IsFriendly() const override;
+	int GetAttackRadius() const;
+	int GetHealth() const;
+	int GetDamage() const;
+	std::shared_ptr<Entity> clone() const override;
+
+private:
+	int score_;
+	std::shared_ptr<Weapon> weapon_;
+};
+
+#endif // PLAYER_H
+--- END: entites/Player.h ---
+
+
+--- FILE: entites/EnemyBuilding.h ---
+Path: /Users/ivanalejnikov/CLionProjects/Game/entites/EnemyBuilding.h
+Size: 377 bytes
+--- BEGIN ---
+#ifndef ENEMYBUILDING_H
+#define ENEMYBUILDING_H
+
+#include "Entity.h"
+
+enum class SpawnInterval { kDefault = 4 };
+
+class EnemyBuilding : public Entity {
+public:
+	EnemyBuilding();
+	EnemyBuilding(int steps_to_spawn);
+	bool CanSpawn();
+	bool IsFriendly() const override;
+	std::shared_ptr<Entity> clone() const override;
+
+private:
+	int steps_to_spawn_;
+};
+
+#endif // ENEMYBUILDING_H
+--- END: entites/EnemyBuilding.h ---
+
+
+--- FILE: entites/Weapon.h ---
+Path: /Users/ivanalejnikov/CLionProjects/Game/entites/Weapon.h
+Size: 458 bytes
+--- BEGIN ---
+#ifndef WEAPON_H
+#define WEAPON_H
+
+enum class AttackMod {
+	RangeCombat,
+	CloseCombat
+};
+
+class Weapon {
+public:
+	Weapon(int damage = 50, int attack_radius = 2, AttackMod mode = AttackMod::RangeCombat);
+	void ChangeAttackMod();
+	int GetDamage() const;
+	int GetAttackRadius() const;
+	AttackMod GetAttackMode() const;
+
+private:
+	int damage_;
+	int attack_radius_;
+	int initial_damage_;
+	int initial_attack_radius_;
+	AttackMod attack_mode_;
+};
+
+#endif // WEAPON_H
+--- END: entites/Weapon.h ---
+
+
+--- FILE: entites/Entity.h ---
+Path: /Users/ivanalejnikov/CLionProjects/Game/entites/Entity.h
+Size: 496 bytes
+--- BEGIN ---
+#ifndef ENTITY_H
+#define ENTITY_H
+
+#include <memory>
+
+class Entity {
+public:
+	Entity();
+	int GetDamage() const;
+	bool CauseDamage(int);
+	bool IsDead() const;
+	bool CanHit() const;
+	bool NotMoveNext();
+	bool IsStatic() const;
+	void SetNotMoveNext(bool);
+	int GetHP() const;
+	virtual bool IsFriendly() const;
+	virtual std::shared_ptr<Entity> clone() const = 0;
+
+protected:
+	int hp_;
+	int damage_;
+	bool can_move_on_cell_;
+	bool can_hit_on_walking_;
+	bool not_move_next_turn_;
+};
+
+#endif // ENTITY_H
+--- END: entites/Entity.h ---
+
+
+--- FILE: entites/Enemy.h ---
+Path: /Users/ivanalejnikov/CLionProjects/Game/entites/Enemy.h
+Size: 207 bytes
+--- BEGIN ---
+#ifndef ENEMY_H
+#define ENEMY_H
+
+#include "Entity.h"
+
+class Enemy : public Entity {
+public:
+	Enemy();
+	bool IsFriendly() const override;
+	std::shared_ptr<Entity> clone() const override;
+};
+
+#endif // ENEMY_H
+--- END: entites/Enemy.h ---
+
+
+--- FILE: entites/EnemyBuilding.cpp ---
+Path: /Users/ivanalejnikov/CLionProjects/Game/entites/EnemyBuilding.cpp
+Size: 715 bytes
+--- BEGIN ---
+#include "EnemyBuilding.h"
+
+EnemyBuilding::EnemyBuilding()
+	: Entity(),
+	  steps_to_spawn_(static_cast<int>(SpawnInterval::kDefault)) {
+	can_hit_on_walking_ = false;
+	can_move_on_cell_ = false;
+}
+
+EnemyBuilding::EnemyBuilding(int steps_to_spawn)
+	: EnemyBuilding() {
+	steps_to_spawn_ = steps_to_spawn >= 0 ? steps_to_spawn : static_cast<int>(SpawnInterval::kDefault);
+}
+
+bool EnemyBuilding::CanSpawn() {
+	if (steps_to_spawn_ == 0) {
+		steps_to_spawn_ = static_cast<int>(SpawnInterval::kDefault);
+		return true;
+	}
+	steps_to_spawn_--;
+	return false;
+}
+
+bool EnemyBuilding::IsFriendly() const {
+	return false;
+}
+
+std::shared_ptr<Entity> EnemyBuilding::clone() const {
+	return std::make_shared<EnemyBuilding>(*this);
+}
+--- END: entites/EnemyBuilding.cpp ---
+
+
+--- FILE: entites/Enemy.cpp ---
+Path: /Users/ivanalejnikov/CLionProjects/Game/entites/Enemy.cpp
+Size: 219 bytes
+--- BEGIN ---
+#include "Enemy.h"
+
+Enemy::Enemy() : Entity() {
+	can_hit_on_walking_ = true;
+}
+
+bool Enemy::IsFriendly() const {
+	return false;
+}
+
+std::shared_ptr<Entity> Enemy::clone() const {
+	return std::make_shared<Enemy>(*this);
+}
+--- END: entites/Enemy.cpp ---
+
+
+--- FILE: logic/World.h ---
+Path: /Users/ivanalejnikov/CLionProjects/Game/logic/World.h
+Size: 628 bytes
+--- BEGIN ---
+#ifndef WORLD_H
+#define WORLD_H
+
+#include "./managers/EnemyManager.h"
+#include "./managers/EnemyBuildingManager.h"
+#include "./managers/PlayerManager.h"
+#include "../map/Field.h"
+
+class World {
+public:
+	void Init(Field& field, std::shared_ptr<Player> player, int count_enemies, int count_buildings);
+	void Update(Field& field, std::shared_ptr<Player> player);
+	void DeleteDeadEntites(Field& field);
+	PlayerManager& PlayerMan();
+	EnemyManager& Enemies();
+	EnemyBuildingManager& EnemiesBuildings();
+
+private:
+	EnemyManager enemyManager_;
+	PlayerManager playerManager_;
+	EnemyBuildingManager buildingManager_;
+};
+
+#endif // WORLD_H
+--- END: logic/World.h ---
+
+
+--- FILE: logic/World.cpp ---
+Path: /Users/ivanalejnikov/CLionProjects/Game/logic/World.cpp
+Size: 852 bytes
+--- BEGIN ---
+#include "World.h"
+
+void World::Init(Field& field, std::shared_ptr<Player> player, int count_enemies, int count_buildings) {
+	playerManager_.SpawnPlayer(field, player);
+	enemyManager_.SpawnEnemies(field, count_enemies);
+	buildingManager_.SpawnEnemiesBuildings(field, count_buildings);
+}
+
+void World::Update(Field& field, std::shared_ptr<Player> player) {
+	playerManager_.ManagePlayerTurn(player, field, *this);
+	enemyManager_.EnemiesTurn(player, field);
+	buildingManager_.EnemiesBuildingTurn(field, *this);
+}
+
+void World::DeleteDeadEntites(Field& field) {
+	enemyManager_.DeleteDeadEnemies(field);
+	buildingManager_.DeleteDeadEnemiesBuildings(field);
+}
+
+PlayerManager& World::PlayerMan() {
+	return playerManager_;
+}
+
+EnemyManager& World::Enemies() {
+	return enemyManager_;
+}
+
+EnemyBuildingManager& World::EnemiesBuildings() {
+	return buildingManager_;
+}
+--- END: logic/World.cpp ---
+
+
+--- FILE: map/Field.h ---
+Path: /Users/ivanalejnikov/CLionProjects/Game/map/Field.h
+Size: 1552 bytes
+--- BEGIN ---
+#ifndef FIELD_H
+#define FIELD_H
+
+#include <vector>
+#include "./cells/Cell.h"
+
+enum class MoveType {
+	Forward,
+	Back,
+	Left,
+	Right
+};
+
+/**
+ * @brief This class was the realisation of the game field he was a only
+ * conventional unit. Inside located logic - move entity on field remote entity on field
+ * find entity position and setters/getters. Have a contsructors moving and copy.
+ */
+class Field {
+public:
+	Field() : Field(10, 10) {
+	};
+
+	Field(int, int);
+
+	Field(int, int, int, int);
+
+	// Констуктор копирования (я знаю, но пишу на всякий случай)
+	Field(const Field &);
+
+	// Конструктор перемещения (не выбрасывает исключений)
+	Field(Field &&);
+
+	// Оператор копирования
+	Field &operator=(const Field &);
+
+	// Оператор перемещения
+	Field &operator=(Field &&);
+
+	MoveResult MoveEntity(MoveType move, std::shared_ptr<Entity>);
+
+	bool SetEntity(std::shared_ptr<Entity>, int, int);
+
+	bool RemoteEntity(std::shared_ptr<Entity>);
+
+	int GetCountSpawnCells();
+
+	void GetSize(int &, int &);
+
+	bool GetPosEntity(std::shared_ptr<Entity>, int &, int &);
+
+	bool CorrectPosition(int, int) const;
+
+	// Maybe temporary for detected type of the cell. Neede to visualise field cells.
+	std::string GetCellType(int x, int y) const { return field_[y][x]->GetName(); }
+
+private:
+	int height_;
+	int width_;
+	int count_spawn_cells_;
+	std::vector<std::vector<std::shared_ptr<Cell> > > field_;
+
+	void CreateField(int, int);
+};
+
+#endif //FIELD_H
+
+--- END: map/Field.h ---
+
+
+--- FILE: map/Field.cpp ---
+Path: /Users/ivanalejnikov/CLionProjects/Game/map/Field.cpp
+Size: 6761 bytes
+--- BEGIN ---
+#include <random>
+#include <memory>
+
+#include "Field.h"
+
+#include "./cells/SlowingCell.h"
+#include "./cells/ImpassableCell.h"
+#include "../entites/Enemy.h"
+#include "../entites/EnemyBuilding.h"
+
+Field::Field(int width, int height, int count_impassable, int count_slowing)
+    : width_((width >= 10 && width <= 25) ? width : 10),
+      height_((height >= 10 && height <= 25) ? height : 10) {
+
+    count_impassable = count_impassable + count_slowing > (width_ * height_) / 2 ? (width_ * height_) / 10  : count_impassable;
+
+	count_slowing = count_impassable + count_slowing > (width_ * height_) / 2 ? (width_ * height_) / 10 : count_slowing;
+
+    CreateField(count_slowing, count_impassable);
+}
+
+// We choise very big values because constuctor create a good values.
+Field::Field(int width, int height) : Field(width, height, width*height, width*height) {};
+
+
+// ИСПРАВЛЕННЫЙ конструктор копирования
+Field::Field(const Field& other)
+    : width_(other.width_), height_(other.height_), count_spawn_cells_(other.count_spawn_cells_) {
+    field_.resize(height_);
+    for (int i = 0; i < height_; ++i) {
+        field_[i].resize(width_);
+        for (int j = 0; j < width_; ++j) {
+            // Клонируем КЛЕТКУ (глубокое копирование структуры поля)
+            field_[i][j] = other.field_[i][j]->clone();
+
+            // Но СУЩНОСТЬ не клонируем - делим владение через shared_ptr!
+            if (!other.field_[i][j]->IsEmpty()) {
+                auto entity = other.field_[i][j]->GetEntity();
+                if (entity) {
+                    // Используем тот же shared_ptr - разделенное владение
+                    field_[i][j]->SpawnEntity(entity);
+                }
+            }
+        }
+    }
+}
+
+Field::Field(Field&& other)
+    : width_(other.width_), height_(other.height_),
+      count_spawn_cells_(other.count_spawn_cells_),
+      field_(std::move(other.field_)) {
+    other.width_ = 0;
+    other.height_ = 0;
+    other.count_spawn_cells_ = 0;
+    other.field_.clear();
+}
+
+// ИСПРАВЛЕННЫЙ оператор присваивания копированием
+Field& Field::operator=(const Field& other) {
+    if (this != &other) {
+        width_ = other.width_;
+        height_ = other.height_;
+        count_spawn_cells_ = other.count_spawn_cells_;
+        field_.clear();
+        field_.resize(height_);
+        for (int i = 0; i < height_; ++i) {
+            field_[i].resize(width_);
+            for (int j = 0; j < width_; ++j) {
+                // Клонируем клетку
+                field_[i][j] = other.field_[i][j]->clone();
+
+                // Сущность не клонируем - разделяем владение
+                if (!other.field_[i][j]->IsEmpty()) {
+                    auto entity = other.field_[i][j]->GetEntity();
+                    if (entity) {
+                        field_[i][j]->SpawnEntity(entity);
+                    }
+                }
+            }
+        }
+    }
+    return *this;
+}
+
+Field& Field::operator=(Field&& other) {
+    if (this != &other) {
+        width_ = other.width_;
+        height_ = other.height_;
+        count_spawn_cells_ = other.count_spawn_cells_;
+        field_ = std::move(other.field_);
+        other.width_ = 0;
+        other.height_ = 0;
+        other.count_spawn_cells_ = 0;
+        other.field_.clear();
+    }
+    return *this;
+}
+
+void Field::CreateField(int count_slowing, int count_impassable) {
+
+    this->field_ = std::vector<std::vector<std::shared_ptr<Cell>>>(height_, std::vector<std::shared_ptr<Cell>>(width_));
+
+    std::random_device rd;
+    std::mt19937 gen(rd());
+
+    int total_cells = width_ * height_;
+
+    this->count_spawn_cells_ = total_cells - count_impassable;
+
+    int count_cell = total_cells - count_impassable - count_slowing;
+
+    std::uniform_int_distribution<> dist(0, count_cell + count_impassable + count_slowing - 1);
+
+    for (int i = 0; i < height_; i++) {
+        for (int j = 0; j < width_; j++) {
+
+            if (i == 0 && j == 0)
+                continue;
+
+            int x = dist(gen);
+
+            if (x < count_cell) {
+                field_[i][j] = std::make_shared<Cell>();
+                count_cell--;
+            } else if (x < count_cell + count_impassable) {
+                field_[i][j] = std::make_shared<ImpassableCell>();
+                count_impassable--;
+            } else {
+                field_[i][j] = std::make_shared<SlowingCell>();
+                count_slowing--;
+            }
+
+            if (count_cell + count_impassable + count_slowing > 0)
+                dist = std::uniform_int_distribution<>(0, count_cell + count_impassable + count_slowing - 1);
+        }
+    }
+
+    // Start Cell is always safety.
+    field_[0][0] = std::make_shared<Cell>();
+}
+
+MoveResult Field::MoveEntity(MoveType move, std::shared_ptr<Entity> entity) {
+    int x_curr, y_curr;
+    if (!GetPosEntity(entity, x_curr, y_curr))
+        return MoveResult::BlockedByWall;
+
+    int x_new = x_curr, y_new = y_curr;
+    switch (move) {
+        case MoveType::Forward: y_new++; break;
+        case MoveType::Back:    y_new--; break;
+        case MoveType::Left:    x_new--; break;
+        case MoveType::Right:   x_new++; break;
+        default: return MoveResult::BlockedByWall;
+    }
+
+    if (!CorrectPosition(x_new, y_new))
+        return MoveResult::BlockedByWall;
+
+    MoveResult res = field_[y_new][x_new]->EnterEntity(entity);
+    if (res == MoveResult::Moved) {
+        field_[y_curr][x_curr]->RemoveEntity(entity);
+    }
+    return res;
+}
+
+
+bool Field::SetEntity(std::shared_ptr<Entity> entity, int x, int y) {
+    if (!CorrectPosition(x, y))
+        return false;
+
+    if (!field_[y][x]->IsEmpty())
+        return false;
+
+    if (std::dynamic_pointer_cast<ImpassableCell>(field_[y][x]))
+        return false;
+
+    return field_[y][x]->SpawnEntity(entity);
+}
+
+int Field::GetCountSpawnCells(){
+    return count_spawn_cells_;
+}
+
+void Field::GetSize(int& w, int& h){
+    w = width_; h = height_;
+}
+
+bool Field::RemoteEntity(std::shared_ptr<Entity> entity){
+    int x_curr, y_curr;
+    if (!GetPosEntity(entity, x_curr, y_curr))
+        return false;
+
+    return field_[y_curr][x_curr]->RemoveEntity(entity);
+}
+
+bool Field::GetPosEntity(std::shared_ptr<Entity> entity, int& x, int& y){
+    for (int i = 0; i < height_; i++){
+        for (int j = 0; j < width_; j++){
+            if (field_[i][j]->EqualEntites(entity)){
+                x = j;
+                y = i;
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+bool Field::CorrectPosition(int x, int y) const{
+    return (x < width_ && y < height_ && x >= 0 && y >= 0);
+}
+--- END: map/Field.cpp ---
+
+
+--- FILE: map/cells/Cell.h ---
+Path: /Users/ivanalejnikov/CLionProjects/Game/map/cells/Cell.h
+Size: 916 bytes
+--- BEGIN ---
+#ifndef CELL_H
+#define CELL_H
+
+#include <memory>
+#include <string>
+
+#include "../../entites/Entity.h"
+#include "../../entites/Player.h"
+
+enum class MoveResult {
+	BlockedByWall,
+	Moved,
+	HitEntity,
+	Blocked,
+	Unreal
+};
+
+
+class Cell {
+public:
+	Cell(std::shared_ptr<Entity> entity) : entity_(entity) {};
+
+	Cell() : entity_(nullptr) {};
+
+	bool IsEmpty() const;
+
+	virtual MoveResult EnterEntity(std::shared_ptr<Entity>);
+
+	bool RemoveEntity(std::shared_ptr<Entity>);
+
+	bool SpawnEntity(std::shared_ptr<Entity>);
+
+	bool EqualEntites(std::shared_ptr<Entity>);
+
+	// For correct deep copy.
+	virtual std::shared_ptr<Cell> clone() const {
+		auto c = std::make_shared<Cell>();
+		if (entity_) c->SpawnEntity(entity_->clone());
+		return c;
+	}
+
+	std::shared_ptr<Entity> GetEntity() const { return entity_; }
+
+	virtual std::string GetName() const { return "Cell"; }
+
+protected:
+	std::shared_ptr<Entity> entity_;
+};
+
+#endif //CELL_H
+
+--- END: map/cells/Cell.h ---
+
+
+--- FILE: map/cells/ImpassableCell.h ---
+Path: /Users/ivanalejnikov/CLionProjects/Game/map/cells/ImpassableCell.h
+Size: 726 bytes
+--- BEGIN ---
+#ifndef IMPASSABLECELL_H
+#define IMPASSABLECELL_H
+
+#include "Cell.h"
+
+class ImpassableCell : public Cell {
+public:
+    ImpassableCell() : Cell(nullptr) {};
+    MoveResult EnterEntity(std::shared_ptr<Entity>) override;
+    bool SpawnEntity(std::shared_ptr<Entity>){return false;}
+    std::string GetName() const override { return "Impassable"; }
+
+    std::shared_ptr<Cell> clone() const override {
+        auto c = std::make_shared<ImpassableCell>();
+        if (entity_) c->SpawnEntity(entity_->clone()); // клонируем сущность внутри
+        return c;
+    }
+
+private:
+    // For Impasseble cell always not have entity.
+    ImpassableCell(std::shared_ptr<Entity>) = delete;
+
+};
+
+#endif //IMPASSABLECELL_H
+--- END: map/cells/ImpassableCell.h ---
+
+
+--- FILE: map/cells/Cell.cpp ---
+Path: /Users/ivanalejnikov/CLionProjects/Game/map/cells/Cell.cpp
+Size: 1078 bytes
+--- BEGIN ---
+#include "Cell.h"
+
+/**
+* @brief This method is installing intity on this cell after moving.
+*/
+MoveResult Cell::EnterEntity(std::shared_ptr<Entity> entity) {
+    if (entity->IsStatic())
+        return MoveResult::Blocked;
+
+	if (this->entity_ == nullptr) {
+        this->entity_ = entity;
+        return MoveResult::Moved;
+    }
+
+    if (!entity->CanHit())
+        return MoveResult::Blocked;
+
+    if (entity->IsFriendly() != this->entity_->IsFriendly()) {
+        this->entity_->CauseDamage(entity->GetDamage());
+        return MoveResult::HitEntity;
+    }
+
+    return MoveResult::Blocked;
+}
+
+
+bool Cell::RemoveEntity(std::shared_ptr<Entity> entity) {
+    if (this->entity_ != entity)
+        return false;
+
+    this->entity_ = nullptr;
+    return true;
+}
+
+bool Cell::SpawnEntity(std::shared_ptr<Entity> entity) {
+    if (this->entity_ != nullptr)
+        return false;
+
+    this->entity_ = entity;
+    return true;
+}
+
+bool Cell::IsEmpty() const {
+    return this->entity_ == nullptr;
+}
+
+bool  Cell::EqualEntites(std::shared_ptr<Entity> entity) {
+    return entity_ == entity;
+}
+--- END: map/cells/Cell.cpp ---
+
+
+--- FILE: map/cells/SlowingCell.cpp ---
+Path: /Users/ivanalejnikov/CLionProjects/Game/map/cells/SlowingCell.cpp
+Size: 570 bytes
+--- BEGIN ---
+#include "SlowingCell.h"
+
+MoveResult SlowingCell::EnterEntity(std::shared_ptr<Entity> entity) {
+    if (entity->IsStatic())
+        return MoveResult::Blocked;
+
+    if (this->entity_ == nullptr) {
+        this->entity_ = entity;
+        entity->SetNotMoveNext(true);
+        return MoveResult::Moved;
+    }
+
+    if (!entity->CanHit())
+        return MoveResult::Blocked;
+
+    if (entity->IsFriendly() != this->entity_->IsFriendly()) {
+        this->entity_->CauseDamage(entity->GetDamage());
+        return MoveResult::HitEntity;
+    }
+
+    return MoveResult::Blocked;
+}
+--- END: map/cells/SlowingCell.cpp ---
+
+
+--- FILE: map/cells/ImpassableCell.cpp ---
+Path: /Users/ivanalejnikov/CLionProjects/Game/map/cells/ImpassableCell.cpp
+Size: 126 bytes
+--- BEGIN ---
+#include "ImpassableCell.h"
+
+MoveResult ImpassableCell::EnterEntity(std::shared_ptr<Entity>){
+    return MoveResult::Unreal;
+}
+--- END: map/cells/ImpassableCell.cpp ---
+
+
+--- FILE: map/cells/SlowingCell.h ---
+Path: /Users/ivanalejnikov/CLionProjects/Game/map/cells/SlowingCell.h
+Size: 440 bytes
+--- BEGIN ---
+#ifndef SLOWINGCELL_H
+#define SLOWINGCELL_H
+
+#include "Cell.h"
+
+class SlowingCell : public Cell {
+public:
+    MoveResult EnterEntity(std::shared_ptr<Entity>) override;
+
+    std::shared_ptr<Cell> clone() const override {
+        auto c = std::make_shared<SlowingCell>();
+        if (entity_) c->SpawnEntity(entity_->clone());
+        return c;
+    }
+
+    std::string GetName() const override { return "Slowing"; };
+};
+
+#endif //SLOWINGCELL_H
+--- END: map/cells/SlowingCell.h ---
+
+
+--- FILE: logic/managers/EnemyManager.cpp ---
+Path: /Users/ivanalejnikov/CLionProjects/Game/logic/managers/EnemyManager.cpp
+Size: 3439 bytes
+--- BEGIN ---
+#include "EnemyManager.h"
+#include <random>
+
+bool EnemyManager::EnemiesTurn(std::shared_ptr<Player> player, Field& field) {
+    bool flag = true;
+    for (auto enemy_weak : enemies_) {
+        if (auto enemy = enemy_weak.lock()) {
+            if (enemy->NotMoveNext())
+                continue;
+
+            int x_enemy, y_enemy;
+            if (!field.GetPosEntity(enemy, x_enemy, y_enemy)) {
+                flag = false;
+                continue;
+            }
+
+            std::array<MoveType, 4> moving;
+            if (!GetMoveForEnemy(field, moving, player, enemy_weak)) {
+                flag = false;
+                continue;
+            }
+
+            for (auto move : moving) {
+                MoveResult result = field.MoveEntity(move, enemy);
+                if (result == MoveResult::Moved || result == MoveResult::HitEntity) {
+                    break;
+                }
+            }
+        }
+    }
+    return flag;
+}
+
+bool EnemyManager::GetMoveForEnemy(Field& field, std::array<MoveType, 4>& moves, std::shared_ptr<Entity> target, std::weak_ptr<Entity> current) {
+    int x_target, y_target;
+    if (!field.GetPosEntity(target, x_target, y_target))
+        return false;
+
+    auto current_shared = current.lock();
+    if (!current_shared)
+        return false;
+
+    int x_current, y_current;
+    if (!field.GetPosEntity(current_shared, x_current, y_current))
+        return false;
+
+    int x_maj = x_target - x_current;
+    int y_maj = y_target - y_current;
+
+    if (std::abs(x_maj) > std::abs(y_maj)) {
+        moves[0] = x_maj > 0 ? MoveType::Right : MoveType::Left;
+        moves[2] = x_maj > 0 ? MoveType::Left : MoveType::Right;
+        moves[1] = y_maj > 0 ? MoveType::Forward : MoveType::Back;
+        moves[3] = y_maj > 0 ? MoveType::Back : MoveType::Forward;
+    } else {
+        moves[0] = y_maj > 0 ? MoveType::Forward : MoveType::Back;
+        moves[2] = y_maj > 0 ? MoveType::Back : MoveType::Forward;
+        moves[1] = x_maj > 0 ? MoveType::Right : MoveType::Left;
+        moves[3] = x_maj > 0 ? MoveType::Left : MoveType::Right;
+    }
+    return true;
+}
+
+bool EnemyManager::SpawnEnemies(Field& field, int count_enemies) {
+    int w, h;
+    field.GetSize(w, h);
+    int count_spawn_cells = field.GetCountSpawnCells();
+
+    if (count_enemies >= (count_spawn_cells - 1) / 2)
+        return false;
+
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> x_dist(0, w - 1);
+    std::uniform_int_distribution<> y_dist(0, h - 1);
+
+    for (int i = 0; i < count_enemies; i++) {
+        int x = x_dist(gen);
+        int y = y_dist(gen);
+        auto enemy = std::make_shared<Enemy>();
+        enemies_.push_back(enemy);
+        while ((x == 0 && y == 0) || !field.SetEntity(enemy, x, y)) {
+            x = x_dist(gen);
+            y = y_dist(gen);
+        }
+    }
+    return true;
+}
+
+void EnemyManager::DeleteDeadEnemies(Field& field) {
+    for (auto it = enemies_.begin(); it != enemies_.end();) {
+        if (auto enemy = it->lock()) {
+            if (enemy->IsDead()) {
+                field.RemoteEntity(enemy);
+                it = enemies_.erase(it);
+            } else {
+                ++it;
+            }
+        } else {
+            it = enemies_.erase(it);
+        }
+    }
+}
+
+void EnemyManager::AddEnemy(std::weak_ptr<Enemy> enemy) {
+    enemies_.push_back(enemy);
+}
+
+const std::vector<std::weak_ptr<Enemy>>& EnemyManager::GetEnemies() const {
+    return enemies_;
+}
+--- END: logic/managers/EnemyManager.cpp ---
+
+
+--- FILE: logic/managers/EnemyBuildingManager.cpp ---
+Path: /Users/ivanalejnikov/CLionProjects/Game/logic/managers/EnemyBuildingManager.cpp
+Size: 2453 bytes
+--- BEGIN ---
+#include "EnemyBuildingManager.h"
+#include "EnemyManager.h"
+#include "../World.h"
+#include <random>
+
+bool EnemyBuildingManager::SpawnEnemiesBuildings(Field& field, int count_enemy_build) {
+    int w, h;
+    field.GetSize(w, h);
+    int count_spawn_cells = field.GetCountSpawnCells();
+
+    if (count_enemy_build >= (count_spawn_cells - 1) / 2)
+        return false;
+
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> x_dist(0, w - 1);
+    std::uniform_int_distribution<> y_dist(0, h - 1);
+
+    for (int i = 0; i < count_enemy_build; i++) {
+        int x = x_dist(gen);
+        int y = y_dist(gen);
+        auto enemy_building = std::make_shared<EnemyBuilding>();
+        enemies_buildings_.push_back(enemy_building);
+        while ((x == 0 && y == 0) || !field.SetEntity(enemy_building, x, y)) {
+            x = x_dist(gen);
+            y = y_dist(gen);
+        }
+    }
+    return true;
+}
+
+bool EnemyBuildingManager::EnemiesBuildingTurn(Field& field, World& world) {
+    bool flag = true;
+    for (auto building_weak : enemies_buildings_) {
+        if (auto building = building_weak.lock()) {
+            if (!building->CanSpawn())
+                continue;
+
+            int building_x, building_y;
+            if (!field.GetPosEntity(building, building_x, building_y)) {
+                flag = false;
+                continue;
+            }
+
+            auto enemy = std::make_shared<Enemy>();
+            int dx[4] = {-1, 1, 0, 0};
+            int dy[4] = {0, 0, -1, 1};
+
+            EnemyManager& enemies_manager = world.Enemies();
+            for (int i = 0; i < 4; ++i) {
+                if (field.SetEntity(enemy, building_x + dx[i], building_y + dy[i])) {
+                    enemies_manager.AddEnemy(enemy);
+                    break;
+                }
+            }
+        }
+    }
+    return flag;
+}
+
+void EnemyBuildingManager::DeleteDeadEnemiesBuildings(Field& field) {
+    for (auto it = enemies_buildings_.begin(); it != enemies_buildings_.end();) {
+        if (auto building = it->lock()) {
+            if (building->IsDead()) {
+                field.RemoteEntity(building);
+                it = enemies_buildings_.erase(it);
+            } else {
+                ++it;
+            }
+        } else {
+            it = enemies_buildings_.erase(it);
+        }
+    }
+}
+
+const std::vector<std::weak_ptr<EnemyBuilding>>& EnemyBuildingManager::GetEnemiesBuildings() const {
+    return enemies_buildings_;
+}
+--- END: logic/managers/EnemyBuildingManager.cpp ---
+
+
+--- FILE: logic/managers/PlayerManager.h ---
+Path: /Users/ivanalejnikov/CLionProjects/Game/logic/managers/PlayerManager.h
+Size: 588 bytes
+--- BEGIN ---
+#ifndef PLAYERMANAGER_H
+#define PLAYERMANAGER_H
+
+#include "../../entites/Player.h"
+#include "../../map/Field.h"
+
+class World;
+
+enum class PlayerEvents {
+	ChangeMod,
+	Attack,
+	Move
+};
+
+class PlayerManager {
+public:
+	void SpawnPlayer(Field& field, std::shared_ptr<Player> player);
+	bool PlayerTurn(std::shared_ptr<Player>, PlayerEvents);
+	bool PlayerTurn(std::shared_ptr<Player>, PlayerEvents, int, int, Field&, World&);
+	bool PlayerTurn(std::shared_ptr<Player>, PlayerEvents, MoveType, Field&);
+	void ManagePlayerTurn(std::shared_ptr<Player>, Field&, World&);
+};
+
+#endif // PLAYERMANAGER_H
+--- END: logic/managers/PlayerManager.h ---
+
+
+--- FILE: logic/managers/PlayerManager.cpp ---
+Path: /Users/ivanalejnikov/CLionProjects/Game/logic/managers/PlayerManager.cpp
+Size: 3195 bytes
+--- BEGIN ---
+#include "PlayerManager.h"
+#include "EnemyBuildingManager.h"
+#include "EnemyManager.h"
+#include "../World.h"
+#include <iostream>
+#include <sstream>
+
+void PlayerManager::SpawnPlayer(Field& field, std::shared_ptr<Player> player) {
+    field.SetEntity(player, 0, 0);
+}
+
+bool PlayerManager::PlayerTurn(std::shared_ptr<Player> player, PlayerEvents event) {
+    if (player->NotMoveNext())
+        return true;
+
+    if (event != PlayerEvents::ChangeMod)
+        return false;
+
+    player->ChangeAttackMod();
+    return true;
+}
+
+bool PlayerManager::PlayerTurn(std::shared_ptr<Player> player, PlayerEvents event, int x, int y, Field& field, World& world) {
+    if (player->NotMoveNext())
+        return true;
+
+    if (event != PlayerEvents::Attack)
+        return false;
+
+    int x_player, y_player;
+    if (!field.GetPosEntity(player, x_player, y_player))
+        return false;
+
+    int rad_attack = player->GetAttackRadius();
+    if (std::pow(y - y_player, 2) + std::pow(x - x_player, 2) > std::pow(rad_attack, 2))
+        return false;
+
+    std::shared_ptr<Entity> target = nullptr;
+    int x_e, y_e;
+    for (const auto& enemy_weak : world.Enemies().GetEnemies()) {
+        if (auto enemy = enemy_weak.lock()) {
+            if (field.GetPosEntity(enemy, x_e, y_e) && x_e == x && y_e == y) {
+                target = enemy;
+                break;
+            }
+        }
+    }
+
+    for (const auto& building_weak : world.EnemiesBuildings().GetEnemiesBuildings()) {
+        if (auto building = building_weak.lock()) {
+            if (field.GetPosEntity(building, x_e, y_e) && x_e == x && y_e == y) {
+                target = building;
+                break;
+            }
+        }
+    }
+
+    if (!target)
+        return false;
+
+    target->CauseDamage(player->GetDamage());
+    return true;
+}
+
+bool PlayerManager::PlayerTurn(std::shared_ptr<Player> player, PlayerEvents event, MoveType move_type, Field& field) {
+    if (player->NotMoveNext())
+        return true;
+
+    if (event != PlayerEvents::Move)
+        return false;
+
+    return field.MoveEntity(move_type, player) == MoveResult::Moved;
+}
+
+void PlayerManager::ManagePlayerTurn(std::shared_ptr<Player> player, Field& field, World& world) {
+    std::string input;
+    std::getline(std::cin, input);
+
+    if (input.empty()) return;
+
+    char command = input[0];
+    switch (command) {
+        case 'w':
+            PlayerTurn(player, PlayerEvents::Move, MoveType::Forward, field);
+            break;
+        case 's':
+            PlayerTurn(player, PlayerEvents::Move, MoveType::Back, field);
+            break;
+        case 'a':
+            PlayerTurn(player, PlayerEvents::Move, MoveType::Left, field);
+            break;
+        case 'd':
+            PlayerTurn(player, PlayerEvents::Move, MoveType::Right, field);
+            break;
+        case 'r':
+            PlayerTurn(player, PlayerEvents::ChangeMod);
+            break;
+        case 'e': {
+            int x, y;
+            std::stringstream ss(input.substr(1));
+            if (ss >> x >> y) {
+                std::cout << PlayerTurn(player, PlayerEvents::Attack, x, y, field, world) << std::endl;
+            }
+            break;
+        }
+        default:
+            break;
+    }
+}
+--- END: logic/managers/PlayerManager.cpp ---
+
+
+--- FILE: logic/managers/EnemyManager.h ---
+Path: /Users/ivanalejnikov/CLionProjects/Game/logic/managers/EnemyManager.h
+Size: 604 bytes
+--- BEGIN ---
+#ifndef ENEMYMANAGER_H
+#define ENEMYMANAGER_H
+
+#include <array>
+#include <memory>
+#include <vector>
+#include "../../entites/Enemy.h"
+#include "../../map/Field.h"
+
+class EnemyManager {
+public:
+	bool SpawnEnemies(Field&, int);
+	bool EnemiesTurn(std::shared_ptr<Player>, Field&);
+	bool GetMoveForEnemy(Field&, std::array<MoveType, 4>&, std::shared_ptr<Entity>, std::weak_ptr<Entity>);
+	void DeleteDeadEnemies(Field&);
+	void AddEnemy(std::weak_ptr<Enemy> enemy);
+	const std::vector<std::weak_ptr<Enemy>>& GetEnemies() const;
+
+private:
+	std::vector<std::weak_ptr<Enemy>> enemies_;
+};
+
+#endif // ENEMYMANAGER_H
+--- END: logic/managers/EnemyManager.h ---
+
+
+--- FILE: logic/managers/EnemyBuildingManager.h ---
+Path: /Users/ivanalejnikov/CLionProjects/Game/logic/managers/EnemyBuildingManager.h
+Size: 569 bytes
+--- BEGIN ---
+#ifndef ENEMYBUILDINGMANAGER_H
+#define ENEMYBUILDINGMANAGER_H
+
+#include <vector>
+#include <memory>
+#include "../../entites/EnemyBuilding.h"
+#include "../../entites/Enemy.h"
+#include "../../map/Field.h"
+
+class World;
+
+class EnemyBuildingManager {
+public:
+	bool SpawnEnemiesBuildings(Field&, int);
+	bool EnemiesBuildingTurn(Field&, World&);
+	const std::vector<std::weak_ptr<EnemyBuilding>>& GetEnemiesBuildings() const;
+	void DeleteDeadEnemiesBuildings(Field&);
+
+private:
+	std::vector<std::weak_ptr<EnemyBuilding>> enemies_buildings_;
+};
+
+#endif // ENEMYBUILDINGMANAGER_H
+--- END: logic/managers/EnemyBuildingManager.h ---
+

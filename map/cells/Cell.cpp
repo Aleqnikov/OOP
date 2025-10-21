@@ -1,0 +1,49 @@
+#include "Cell.h"
+
+/**
+* @brief This method is installing intity on this cell after moving.
+*/
+MoveResult Cell::EnterEntity(std::shared_ptr<Entity> entity) {
+    if (entity->IsStatic())
+        return MoveResult::Blocked;
+
+	if (this->entity_ == nullptr) {
+        this->entity_ = entity;
+        return MoveResult::Moved;
+    }
+
+    if (!entity->CanHit())
+        return MoveResult::Blocked;
+
+    if (entity->IsFriendly() != this->entity_->IsFriendly()) {
+        this->entity_->CauseDamage(entity->GetDamage());
+        return MoveResult::HitEntity;
+    }
+
+    return MoveResult::Blocked;
+}
+
+
+bool Cell::RemoveEntity(std::shared_ptr<Entity> entity) {
+    if (this->entity_ != entity)
+        return false;
+
+    this->entity_ = nullptr;
+    return true;
+}
+
+bool Cell::SpawnEntity(std::shared_ptr<Entity> entity) {
+    if (this->entity_ != nullptr)
+        return false;
+
+    this->entity_ = entity;
+    return true;
+}
+
+bool Cell::IsEmpty() const {
+    return this->entity_ == nullptr;
+}
+
+bool  Cell::EqualEntites(std::shared_ptr<Entity> entity) {
+    return entity_ == entity;
+}
