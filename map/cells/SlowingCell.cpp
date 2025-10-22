@@ -7,6 +7,12 @@ MoveResult SlowingCell::EnterEntity(std::shared_ptr<Entity> entity) {
     if (this->entity_ == nullptr) {
         this->entity_ = entity;
         entity->SetNotMoveNext(true);
+
+    	if (event_) {
+    		event_->activateIvent(entity_);
+    		event_ = nullptr;
+    	}
+
         return MoveResult::Moved;
     }
 

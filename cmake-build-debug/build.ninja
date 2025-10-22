@@ -52,100 +52,177 @@ build cmake_object_order_depends_target_Game: phony || .
 build CMakeFiles/Game.dir/main.cpp.o: CXX_COMPILER__Game_unscanned_Debug /Users/ivanalejnikov/CLionProjects/Game/main.cpp || cmake_object_order_depends_target_Game
   DEP_FILE = CMakeFiles/Game.dir/main.cpp.o.d
   FLAGS = -g -std=gnu++20 -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX13.3.sdk -fcolor-diagnostics
-  INCLUDES = -I/Users/ivanalejnikov/CLionProjects/Game/entites -I/Users/ivanalejnikov/CLionProjects/Game/logic -I/Users/ivanalejnikov/CLionProjects/Game/logic/managers -I/Users/ivanalejnikov/CLionProjects/Game/map -I/Users/ivanalejnikov/CLionProjects/Game/map/cells
+  INCLUDES = -I/Users/ivanalejnikov/CLionProjects/Game/entites -I/Users/ivanalejnikov/CLionProjects/Game/entites/Spells -I/Users/ivanalejnikov/CLionProjects/Game/logic -I/Users/ivanalejnikov/CLionProjects/Game/logic/managers -I/Users/ivanalejnikov/CLionProjects/Game/map -I/Users/ivanalejnikov/CLionProjects/Game/map/cells -I/Users/ivanalejnikov/CLionProjects/Game/map/cells/Events
   OBJECT_DIR = CMakeFiles/Game.dir
   OBJECT_FILE_DIR = CMakeFiles/Game.dir
 
-build CMakeFiles/Game.dir/entites/Player.cpp.o: CXX_COMPILER__Game_unscanned_Debug /Users/ivanalejnikov/CLionProjects/Game/entites/Player.cpp || cmake_object_order_depends_target_Game
-  DEP_FILE = CMakeFiles/Game.dir/entites/Player.cpp.o.d
+build CMakeFiles/Game.dir/entites/Ally.cpp.o: CXX_COMPILER__Game_unscanned_Debug /Users/ivanalejnikov/CLionProjects/Game/entites/Ally.cpp || cmake_object_order_depends_target_Game
+  DEP_FILE = CMakeFiles/Game.dir/entites/Ally.cpp.o.d
   FLAGS = -g -std=gnu++20 -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX13.3.sdk -fcolor-diagnostics
-  INCLUDES = -I/Users/ivanalejnikov/CLionProjects/Game/entites -I/Users/ivanalejnikov/CLionProjects/Game/logic -I/Users/ivanalejnikov/CLionProjects/Game/logic/managers -I/Users/ivanalejnikov/CLionProjects/Game/map -I/Users/ivanalejnikov/CLionProjects/Game/map/cells
+  INCLUDES = -I/Users/ivanalejnikov/CLionProjects/Game/entites -I/Users/ivanalejnikov/CLionProjects/Game/entites/Spells -I/Users/ivanalejnikov/CLionProjects/Game/logic -I/Users/ivanalejnikov/CLionProjects/Game/logic/managers -I/Users/ivanalejnikov/CLionProjects/Game/map -I/Users/ivanalejnikov/CLionProjects/Game/map/cells -I/Users/ivanalejnikov/CLionProjects/Game/map/cells/Events
   OBJECT_DIR = CMakeFiles/Game.dir
   OBJECT_FILE_DIR = CMakeFiles/Game.dir/entites
 
 build CMakeFiles/Game.dir/entites/Enemy.cpp.o: CXX_COMPILER__Game_unscanned_Debug /Users/ivanalejnikov/CLionProjects/Game/entites/Enemy.cpp || cmake_object_order_depends_target_Game
   DEP_FILE = CMakeFiles/Game.dir/entites/Enemy.cpp.o.d
   FLAGS = -g -std=gnu++20 -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX13.3.sdk -fcolor-diagnostics
-  INCLUDES = -I/Users/ivanalejnikov/CLionProjects/Game/entites -I/Users/ivanalejnikov/CLionProjects/Game/logic -I/Users/ivanalejnikov/CLionProjects/Game/logic/managers -I/Users/ivanalejnikov/CLionProjects/Game/map -I/Users/ivanalejnikov/CLionProjects/Game/map/cells
+  INCLUDES = -I/Users/ivanalejnikov/CLionProjects/Game/entites -I/Users/ivanalejnikov/CLionProjects/Game/entites/Spells -I/Users/ivanalejnikov/CLionProjects/Game/logic -I/Users/ivanalejnikov/CLionProjects/Game/logic/managers -I/Users/ivanalejnikov/CLionProjects/Game/map -I/Users/ivanalejnikov/CLionProjects/Game/map/cells -I/Users/ivanalejnikov/CLionProjects/Game/map/cells/Events
   OBJECT_DIR = CMakeFiles/Game.dir
   OBJECT_FILE_DIR = CMakeFiles/Game.dir/entites
 
 build CMakeFiles/Game.dir/entites/EnemyBuilding.cpp.o: CXX_COMPILER__Game_unscanned_Debug /Users/ivanalejnikov/CLionProjects/Game/entites/EnemyBuilding.cpp || cmake_object_order_depends_target_Game
   DEP_FILE = CMakeFiles/Game.dir/entites/EnemyBuilding.cpp.o.d
   FLAGS = -g -std=gnu++20 -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX13.3.sdk -fcolor-diagnostics
-  INCLUDES = -I/Users/ivanalejnikov/CLionProjects/Game/entites -I/Users/ivanalejnikov/CLionProjects/Game/logic -I/Users/ivanalejnikov/CLionProjects/Game/logic/managers -I/Users/ivanalejnikov/CLionProjects/Game/map -I/Users/ivanalejnikov/CLionProjects/Game/map/cells
+  INCLUDES = -I/Users/ivanalejnikov/CLionProjects/Game/entites -I/Users/ivanalejnikov/CLionProjects/Game/entites/Spells -I/Users/ivanalejnikov/CLionProjects/Game/logic -I/Users/ivanalejnikov/CLionProjects/Game/logic/managers -I/Users/ivanalejnikov/CLionProjects/Game/map -I/Users/ivanalejnikov/CLionProjects/Game/map/cells -I/Users/ivanalejnikov/CLionProjects/Game/map/cells/Events
+  OBJECT_DIR = CMakeFiles/Game.dir
+  OBJECT_FILE_DIR = CMakeFiles/Game.dir/entites
+
+build CMakeFiles/Game.dir/entites/EnemyTower.cpp.o: CXX_COMPILER__Game_unscanned_Debug /Users/ivanalejnikov/CLionProjects/Game/entites/EnemyTower.cpp || cmake_object_order_depends_target_Game
+  DEP_FILE = CMakeFiles/Game.dir/entites/EnemyTower.cpp.o.d
+  FLAGS = -g -std=gnu++20 -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX13.3.sdk -fcolor-diagnostics
+  INCLUDES = -I/Users/ivanalejnikov/CLionProjects/Game/entites -I/Users/ivanalejnikov/CLionProjects/Game/entites/Spells -I/Users/ivanalejnikov/CLionProjects/Game/logic -I/Users/ivanalejnikov/CLionProjects/Game/logic/managers -I/Users/ivanalejnikov/CLionProjects/Game/map -I/Users/ivanalejnikov/CLionProjects/Game/map/cells -I/Users/ivanalejnikov/CLionProjects/Game/map/cells/Events
   OBJECT_DIR = CMakeFiles/Game.dir
   OBJECT_FILE_DIR = CMakeFiles/Game.dir/entites
 
 build CMakeFiles/Game.dir/entites/Entity.cpp.o: CXX_COMPILER__Game_unscanned_Debug /Users/ivanalejnikov/CLionProjects/Game/entites/Entity.cpp || cmake_object_order_depends_target_Game
   DEP_FILE = CMakeFiles/Game.dir/entites/Entity.cpp.o.d
   FLAGS = -g -std=gnu++20 -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX13.3.sdk -fcolor-diagnostics
-  INCLUDES = -I/Users/ivanalejnikov/CLionProjects/Game/entites -I/Users/ivanalejnikov/CLionProjects/Game/logic -I/Users/ivanalejnikov/CLionProjects/Game/logic/managers -I/Users/ivanalejnikov/CLionProjects/Game/map -I/Users/ivanalejnikov/CLionProjects/Game/map/cells
+  INCLUDES = -I/Users/ivanalejnikov/CLionProjects/Game/entites -I/Users/ivanalejnikov/CLionProjects/Game/entites/Spells -I/Users/ivanalejnikov/CLionProjects/Game/logic -I/Users/ivanalejnikov/CLionProjects/Game/logic/managers -I/Users/ivanalejnikov/CLionProjects/Game/map -I/Users/ivanalejnikov/CLionProjects/Game/map/cells -I/Users/ivanalejnikov/CLionProjects/Game/map/cells/Events
+  OBJECT_DIR = CMakeFiles/Game.dir
+  OBJECT_FILE_DIR = CMakeFiles/Game.dir/entites
+
+build CMakeFiles/Game.dir/entites/Hand.cpp.o: CXX_COMPILER__Game_unscanned_Debug /Users/ivanalejnikov/CLionProjects/Game/entites/Hand.cpp || cmake_object_order_depends_target_Game
+  DEP_FILE = CMakeFiles/Game.dir/entites/Hand.cpp.o.d
+  FLAGS = -g -std=gnu++20 -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX13.3.sdk -fcolor-diagnostics
+  INCLUDES = -I/Users/ivanalejnikov/CLionProjects/Game/entites -I/Users/ivanalejnikov/CLionProjects/Game/entites/Spells -I/Users/ivanalejnikov/CLionProjects/Game/logic -I/Users/ivanalejnikov/CLionProjects/Game/logic/managers -I/Users/ivanalejnikov/CLionProjects/Game/map -I/Users/ivanalejnikov/CLionProjects/Game/map/cells -I/Users/ivanalejnikov/CLionProjects/Game/map/cells/Events
+  OBJECT_DIR = CMakeFiles/Game.dir
+  OBJECT_FILE_DIR = CMakeFiles/Game.dir/entites
+
+build CMakeFiles/Game.dir/entites/Player.cpp.o: CXX_COMPILER__Game_unscanned_Debug /Users/ivanalejnikov/CLionProjects/Game/entites/Player.cpp || cmake_object_order_depends_target_Game
+  DEP_FILE = CMakeFiles/Game.dir/entites/Player.cpp.o.d
+  FLAGS = -g -std=gnu++20 -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX13.3.sdk -fcolor-diagnostics
+  INCLUDES = -I/Users/ivanalejnikov/CLionProjects/Game/entites -I/Users/ivanalejnikov/CLionProjects/Game/entites/Spells -I/Users/ivanalejnikov/CLionProjects/Game/logic -I/Users/ivanalejnikov/CLionProjects/Game/logic/managers -I/Users/ivanalejnikov/CLionProjects/Game/map -I/Users/ivanalejnikov/CLionProjects/Game/map/cells -I/Users/ivanalejnikov/CLionProjects/Game/map/cells/Events
   OBJECT_DIR = CMakeFiles/Game.dir
   OBJECT_FILE_DIR = CMakeFiles/Game.dir/entites
 
 build CMakeFiles/Game.dir/entites/Weapon.cpp.o: CXX_COMPILER__Game_unscanned_Debug /Users/ivanalejnikov/CLionProjects/Game/entites/Weapon.cpp || cmake_object_order_depends_target_Game
   DEP_FILE = CMakeFiles/Game.dir/entites/Weapon.cpp.o.d
   FLAGS = -g -std=gnu++20 -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX13.3.sdk -fcolor-diagnostics
-  INCLUDES = -I/Users/ivanalejnikov/CLionProjects/Game/entites -I/Users/ivanalejnikov/CLionProjects/Game/logic -I/Users/ivanalejnikov/CLionProjects/Game/logic/managers -I/Users/ivanalejnikov/CLionProjects/Game/map -I/Users/ivanalejnikov/CLionProjects/Game/map/cells
+  INCLUDES = -I/Users/ivanalejnikov/CLionProjects/Game/entites -I/Users/ivanalejnikov/CLionProjects/Game/entites/Spells -I/Users/ivanalejnikov/CLionProjects/Game/logic -I/Users/ivanalejnikov/CLionProjects/Game/logic/managers -I/Users/ivanalejnikov/CLionProjects/Game/map -I/Users/ivanalejnikov/CLionProjects/Game/map/cells -I/Users/ivanalejnikov/CLionProjects/Game/map/cells/Events
   OBJECT_DIR = CMakeFiles/Game.dir
   OBJECT_FILE_DIR = CMakeFiles/Game.dir/entites
+
+build CMakeFiles/Game.dir/entites/Spells/DirDamageSpell.cpp.o: CXX_COMPILER__Game_unscanned_Debug /Users/ivanalejnikov/CLionProjects/Game/entites/Spells/DirDamageSpell.cpp || cmake_object_order_depends_target_Game
+  DEP_FILE = CMakeFiles/Game.dir/entites/Spells/DirDamageSpell.cpp.o.d
+  FLAGS = -g -std=gnu++20 -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX13.3.sdk -fcolor-diagnostics
+  INCLUDES = -I/Users/ivanalejnikov/CLionProjects/Game/entites -I/Users/ivanalejnikov/CLionProjects/Game/entites/Spells -I/Users/ivanalejnikov/CLionProjects/Game/logic -I/Users/ivanalejnikov/CLionProjects/Game/logic/managers -I/Users/ivanalejnikov/CLionProjects/Game/map -I/Users/ivanalejnikov/CLionProjects/Game/map/cells -I/Users/ivanalejnikov/CLionProjects/Game/map/cells/Events
+  OBJECT_DIR = CMakeFiles/Game.dir
+  OBJECT_FILE_DIR = CMakeFiles/Game.dir/entites/Spells
+
+build CMakeFiles/Game.dir/entites/Spells/TrapSpell.cpp.o: CXX_COMPILER__Game_unscanned_Debug /Users/ivanalejnikov/CLionProjects/Game/entites/Spells/TrapSpell.cpp || cmake_object_order_depends_target_Game
+  DEP_FILE = CMakeFiles/Game.dir/entites/Spells/TrapSpell.cpp.o.d
+  FLAGS = -g -std=gnu++20 -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX13.3.sdk -fcolor-diagnostics
+  INCLUDES = -I/Users/ivanalejnikov/CLionProjects/Game/entites -I/Users/ivanalejnikov/CLionProjects/Game/entites/Spells -I/Users/ivanalejnikov/CLionProjects/Game/logic -I/Users/ivanalejnikov/CLionProjects/Game/logic/managers -I/Users/ivanalejnikov/CLionProjects/Game/map -I/Users/ivanalejnikov/CLionProjects/Game/map/cells -I/Users/ivanalejnikov/CLionProjects/Game/map/cells/Events
+  OBJECT_DIR = CMakeFiles/Game.dir
+  OBJECT_FILE_DIR = CMakeFiles/Game.dir/entites/Spells
+
+build CMakeFiles/Game.dir/entites/Spells/AreaDmgSpell.cpp.o: CXX_COMPILER__Game_unscanned_Debug /Users/ivanalejnikov/CLionProjects/Game/entites/Spells/AreaDmgSpell.cpp || cmake_object_order_depends_target_Game
+  DEP_FILE = CMakeFiles/Game.dir/entites/Spells/AreaDmgSpell.cpp.o.d
+  FLAGS = -g -std=gnu++20 -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX13.3.sdk -fcolor-diagnostics
+  INCLUDES = -I/Users/ivanalejnikov/CLionProjects/Game/entites -I/Users/ivanalejnikov/CLionProjects/Game/entites/Spells -I/Users/ivanalejnikov/CLionProjects/Game/logic -I/Users/ivanalejnikov/CLionProjects/Game/logic/managers -I/Users/ivanalejnikov/CLionProjects/Game/map -I/Users/ivanalejnikov/CLionProjects/Game/map/cells -I/Users/ivanalejnikov/CLionProjects/Game/map/cells/Events
+  OBJECT_DIR = CMakeFiles/Game.dir
+  OBJECT_FILE_DIR = CMakeFiles/Game.dir/entites/Spells
+
+build CMakeFiles/Game.dir/entites/Spells/EnhacementSpell.cpp.o: CXX_COMPILER__Game_unscanned_Debug /Users/ivanalejnikov/CLionProjects/Game/entites/Spells/EnhacementSpell.cpp || cmake_object_order_depends_target_Game
+  DEP_FILE = CMakeFiles/Game.dir/entites/Spells/EnhacementSpell.cpp.o.d
+  FLAGS = -g -std=gnu++20 -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX13.3.sdk -fcolor-diagnostics
+  INCLUDES = -I/Users/ivanalejnikov/CLionProjects/Game/entites -I/Users/ivanalejnikov/CLionProjects/Game/entites/Spells -I/Users/ivanalejnikov/CLionProjects/Game/logic -I/Users/ivanalejnikov/CLionProjects/Game/logic/managers -I/Users/ivanalejnikov/CLionProjects/Game/map -I/Users/ivanalejnikov/CLionProjects/Game/map/cells -I/Users/ivanalejnikov/CLionProjects/Game/map/cells/Events
+  OBJECT_DIR = CMakeFiles/Game.dir
+  OBJECT_FILE_DIR = CMakeFiles/Game.dir/entites/Spells
+
+build CMakeFiles/Game.dir/entites/Spells/SummSpell.cpp.o: CXX_COMPILER__Game_unscanned_Debug /Users/ivanalejnikov/CLionProjects/Game/entites/Spells/SummSpell.cpp || cmake_object_order_depends_target_Game
+  DEP_FILE = CMakeFiles/Game.dir/entites/Spells/SummSpell.cpp.o.d
+  FLAGS = -g -std=gnu++20 -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX13.3.sdk -fcolor-diagnostics
+  INCLUDES = -I/Users/ivanalejnikov/CLionProjects/Game/entites -I/Users/ivanalejnikov/CLionProjects/Game/entites/Spells -I/Users/ivanalejnikov/CLionProjects/Game/logic -I/Users/ivanalejnikov/CLionProjects/Game/logic/managers -I/Users/ivanalejnikov/CLionProjects/Game/map -I/Users/ivanalejnikov/CLionProjects/Game/map/cells -I/Users/ivanalejnikov/CLionProjects/Game/map/cells/Events
+  OBJECT_DIR = CMakeFiles/Game.dir
+  OBJECT_FILE_DIR = CMakeFiles/Game.dir/entites/Spells
+
+build CMakeFiles/Game.dir/logic/managers/AllyManager.cpp.o: CXX_COMPILER__Game_unscanned_Debug /Users/ivanalejnikov/CLionProjects/Game/logic/managers/AllyManager.cpp || cmake_object_order_depends_target_Game
+  DEP_FILE = CMakeFiles/Game.dir/logic/managers/AllyManager.cpp.o.d
+  FLAGS = -g -std=gnu++20 -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX13.3.sdk -fcolor-diagnostics
+  INCLUDES = -I/Users/ivanalejnikov/CLionProjects/Game/entites -I/Users/ivanalejnikov/CLionProjects/Game/entites/Spells -I/Users/ivanalejnikov/CLionProjects/Game/logic -I/Users/ivanalejnikov/CLionProjects/Game/logic/managers -I/Users/ivanalejnikov/CLionProjects/Game/map -I/Users/ivanalejnikov/CLionProjects/Game/map/cells -I/Users/ivanalejnikov/CLionProjects/Game/map/cells/Events
+  OBJECT_DIR = CMakeFiles/Game.dir
+  OBJECT_FILE_DIR = CMakeFiles/Game.dir/logic/managers
 
 build CMakeFiles/Game.dir/logic/managers/EnemyBuildingManager.cpp.o: CXX_COMPILER__Game_unscanned_Debug /Users/ivanalejnikov/CLionProjects/Game/logic/managers/EnemyBuildingManager.cpp || cmake_object_order_depends_target_Game
   DEP_FILE = CMakeFiles/Game.dir/logic/managers/EnemyBuildingManager.cpp.o.d
   FLAGS = -g -std=gnu++20 -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX13.3.sdk -fcolor-diagnostics
-  INCLUDES = -I/Users/ivanalejnikov/CLionProjects/Game/entites -I/Users/ivanalejnikov/CLionProjects/Game/logic -I/Users/ivanalejnikov/CLionProjects/Game/logic/managers -I/Users/ivanalejnikov/CLionProjects/Game/map -I/Users/ivanalejnikov/CLionProjects/Game/map/cells
+  INCLUDES = -I/Users/ivanalejnikov/CLionProjects/Game/entites -I/Users/ivanalejnikov/CLionProjects/Game/entites/Spells -I/Users/ivanalejnikov/CLionProjects/Game/logic -I/Users/ivanalejnikov/CLionProjects/Game/logic/managers -I/Users/ivanalejnikov/CLionProjects/Game/map -I/Users/ivanalejnikov/CLionProjects/Game/map/cells -I/Users/ivanalejnikov/CLionProjects/Game/map/cells/Events
   OBJECT_DIR = CMakeFiles/Game.dir
   OBJECT_FILE_DIR = CMakeFiles/Game.dir/logic/managers
 
 build CMakeFiles/Game.dir/logic/managers/EnemyManager.cpp.o: CXX_COMPILER__Game_unscanned_Debug /Users/ivanalejnikov/CLionProjects/Game/logic/managers/EnemyManager.cpp || cmake_object_order_depends_target_Game
   DEP_FILE = CMakeFiles/Game.dir/logic/managers/EnemyManager.cpp.o.d
   FLAGS = -g -std=gnu++20 -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX13.3.sdk -fcolor-diagnostics
-  INCLUDES = -I/Users/ivanalejnikov/CLionProjects/Game/entites -I/Users/ivanalejnikov/CLionProjects/Game/logic -I/Users/ivanalejnikov/CLionProjects/Game/logic/managers -I/Users/ivanalejnikov/CLionProjects/Game/map -I/Users/ivanalejnikov/CLionProjects/Game/map/cells
+  INCLUDES = -I/Users/ivanalejnikov/CLionProjects/Game/entites -I/Users/ivanalejnikov/CLionProjects/Game/entites/Spells -I/Users/ivanalejnikov/CLionProjects/Game/logic -I/Users/ivanalejnikov/CLionProjects/Game/logic/managers -I/Users/ivanalejnikov/CLionProjects/Game/map -I/Users/ivanalejnikov/CLionProjects/Game/map/cells -I/Users/ivanalejnikov/CLionProjects/Game/map/cells/Events
+  OBJECT_DIR = CMakeFiles/Game.dir
+  OBJECT_FILE_DIR = CMakeFiles/Game.dir/logic/managers
+
+build CMakeFiles/Game.dir/logic/managers/EnemyTowerManager.cpp.o: CXX_COMPILER__Game_unscanned_Debug /Users/ivanalejnikov/CLionProjects/Game/logic/managers/EnemyTowerManager.cpp || cmake_object_order_depends_target_Game
+  DEP_FILE = CMakeFiles/Game.dir/logic/managers/EnemyTowerManager.cpp.o.d
+  FLAGS = -g -std=gnu++20 -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX13.3.sdk -fcolor-diagnostics
+  INCLUDES = -I/Users/ivanalejnikov/CLionProjects/Game/entites -I/Users/ivanalejnikov/CLionProjects/Game/entites/Spells -I/Users/ivanalejnikov/CLionProjects/Game/logic -I/Users/ivanalejnikov/CLionProjects/Game/logic/managers -I/Users/ivanalejnikov/CLionProjects/Game/map -I/Users/ivanalejnikov/CLionProjects/Game/map/cells -I/Users/ivanalejnikov/CLionProjects/Game/map/cells/Events
   OBJECT_DIR = CMakeFiles/Game.dir
   OBJECT_FILE_DIR = CMakeFiles/Game.dir/logic/managers
 
 build CMakeFiles/Game.dir/logic/managers/PlayerManager.cpp.o: CXX_COMPILER__Game_unscanned_Debug /Users/ivanalejnikov/CLionProjects/Game/logic/managers/PlayerManager.cpp || cmake_object_order_depends_target_Game
   DEP_FILE = CMakeFiles/Game.dir/logic/managers/PlayerManager.cpp.o.d
   FLAGS = -g -std=gnu++20 -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX13.3.sdk -fcolor-diagnostics
-  INCLUDES = -I/Users/ivanalejnikov/CLionProjects/Game/entites -I/Users/ivanalejnikov/CLionProjects/Game/logic -I/Users/ivanalejnikov/CLionProjects/Game/logic/managers -I/Users/ivanalejnikov/CLionProjects/Game/map -I/Users/ivanalejnikov/CLionProjects/Game/map/cells
+  INCLUDES = -I/Users/ivanalejnikov/CLionProjects/Game/entites -I/Users/ivanalejnikov/CLionProjects/Game/entites/Spells -I/Users/ivanalejnikov/CLionProjects/Game/logic -I/Users/ivanalejnikov/CLionProjects/Game/logic/managers -I/Users/ivanalejnikov/CLionProjects/Game/map -I/Users/ivanalejnikov/CLionProjects/Game/map/cells -I/Users/ivanalejnikov/CLionProjects/Game/map/cells/Events
   OBJECT_DIR = CMakeFiles/Game.dir
   OBJECT_FILE_DIR = CMakeFiles/Game.dir/logic/managers
 
 build CMakeFiles/Game.dir/logic/World.cpp.o: CXX_COMPILER__Game_unscanned_Debug /Users/ivanalejnikov/CLionProjects/Game/logic/World.cpp || cmake_object_order_depends_target_Game
   DEP_FILE = CMakeFiles/Game.dir/logic/World.cpp.o.d
   FLAGS = -g -std=gnu++20 -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX13.3.sdk -fcolor-diagnostics
-  INCLUDES = -I/Users/ivanalejnikov/CLionProjects/Game/entites -I/Users/ivanalejnikov/CLionProjects/Game/logic -I/Users/ivanalejnikov/CLionProjects/Game/logic/managers -I/Users/ivanalejnikov/CLionProjects/Game/map -I/Users/ivanalejnikov/CLionProjects/Game/map/cells
+  INCLUDES = -I/Users/ivanalejnikov/CLionProjects/Game/entites -I/Users/ivanalejnikov/CLionProjects/Game/entites/Spells -I/Users/ivanalejnikov/CLionProjects/Game/logic -I/Users/ivanalejnikov/CLionProjects/Game/logic/managers -I/Users/ivanalejnikov/CLionProjects/Game/map -I/Users/ivanalejnikov/CLionProjects/Game/map/cells -I/Users/ivanalejnikov/CLionProjects/Game/map/cells/Events
   OBJECT_DIR = CMakeFiles/Game.dir
   OBJECT_FILE_DIR = CMakeFiles/Game.dir/logic
 
 build CMakeFiles/Game.dir/map/Field.cpp.o: CXX_COMPILER__Game_unscanned_Debug /Users/ivanalejnikov/CLionProjects/Game/map/Field.cpp || cmake_object_order_depends_target_Game
   DEP_FILE = CMakeFiles/Game.dir/map/Field.cpp.o.d
   FLAGS = -g -std=gnu++20 -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX13.3.sdk -fcolor-diagnostics
-  INCLUDES = -I/Users/ivanalejnikov/CLionProjects/Game/entites -I/Users/ivanalejnikov/CLionProjects/Game/logic -I/Users/ivanalejnikov/CLionProjects/Game/logic/managers -I/Users/ivanalejnikov/CLionProjects/Game/map -I/Users/ivanalejnikov/CLionProjects/Game/map/cells
+  INCLUDES = -I/Users/ivanalejnikov/CLionProjects/Game/entites -I/Users/ivanalejnikov/CLionProjects/Game/entites/Spells -I/Users/ivanalejnikov/CLionProjects/Game/logic -I/Users/ivanalejnikov/CLionProjects/Game/logic/managers -I/Users/ivanalejnikov/CLionProjects/Game/map -I/Users/ivanalejnikov/CLionProjects/Game/map/cells -I/Users/ivanalejnikov/CLionProjects/Game/map/cells/Events
   OBJECT_DIR = CMakeFiles/Game.dir
   OBJECT_FILE_DIR = CMakeFiles/Game.dir/map
 
 build CMakeFiles/Game.dir/map/cells/Cell.cpp.o: CXX_COMPILER__Game_unscanned_Debug /Users/ivanalejnikov/CLionProjects/Game/map/cells/Cell.cpp || cmake_object_order_depends_target_Game
   DEP_FILE = CMakeFiles/Game.dir/map/cells/Cell.cpp.o.d
   FLAGS = -g -std=gnu++20 -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX13.3.sdk -fcolor-diagnostics
-  INCLUDES = -I/Users/ivanalejnikov/CLionProjects/Game/entites -I/Users/ivanalejnikov/CLionProjects/Game/logic -I/Users/ivanalejnikov/CLionProjects/Game/logic/managers -I/Users/ivanalejnikov/CLionProjects/Game/map -I/Users/ivanalejnikov/CLionProjects/Game/map/cells
+  INCLUDES = -I/Users/ivanalejnikov/CLionProjects/Game/entites -I/Users/ivanalejnikov/CLionProjects/Game/entites/Spells -I/Users/ivanalejnikov/CLionProjects/Game/logic -I/Users/ivanalejnikov/CLionProjects/Game/logic/managers -I/Users/ivanalejnikov/CLionProjects/Game/map -I/Users/ivanalejnikov/CLionProjects/Game/map/cells -I/Users/ivanalejnikov/CLionProjects/Game/map/cells/Events
   OBJECT_DIR = CMakeFiles/Game.dir
   OBJECT_FILE_DIR = CMakeFiles/Game.dir/map/cells
 
 build CMakeFiles/Game.dir/map/cells/ImpassableCell.cpp.o: CXX_COMPILER__Game_unscanned_Debug /Users/ivanalejnikov/CLionProjects/Game/map/cells/ImpassableCell.cpp || cmake_object_order_depends_target_Game
   DEP_FILE = CMakeFiles/Game.dir/map/cells/ImpassableCell.cpp.o.d
   FLAGS = -g -std=gnu++20 -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX13.3.sdk -fcolor-diagnostics
-  INCLUDES = -I/Users/ivanalejnikov/CLionProjects/Game/entites -I/Users/ivanalejnikov/CLionProjects/Game/logic -I/Users/ivanalejnikov/CLionProjects/Game/logic/managers -I/Users/ivanalejnikov/CLionProjects/Game/map -I/Users/ivanalejnikov/CLionProjects/Game/map/cells
+  INCLUDES = -I/Users/ivanalejnikov/CLionProjects/Game/entites -I/Users/ivanalejnikov/CLionProjects/Game/entites/Spells -I/Users/ivanalejnikov/CLionProjects/Game/logic -I/Users/ivanalejnikov/CLionProjects/Game/logic/managers -I/Users/ivanalejnikov/CLionProjects/Game/map -I/Users/ivanalejnikov/CLionProjects/Game/map/cells -I/Users/ivanalejnikov/CLionProjects/Game/map/cells/Events
   OBJECT_DIR = CMakeFiles/Game.dir
   OBJECT_FILE_DIR = CMakeFiles/Game.dir/map/cells
 
 build CMakeFiles/Game.dir/map/cells/SlowingCell.cpp.o: CXX_COMPILER__Game_unscanned_Debug /Users/ivanalejnikov/CLionProjects/Game/map/cells/SlowingCell.cpp || cmake_object_order_depends_target_Game
   DEP_FILE = CMakeFiles/Game.dir/map/cells/SlowingCell.cpp.o.d
   FLAGS = -g -std=gnu++20 -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX13.3.sdk -fcolor-diagnostics
-  INCLUDES = -I/Users/ivanalejnikov/CLionProjects/Game/entites -I/Users/ivanalejnikov/CLionProjects/Game/logic -I/Users/ivanalejnikov/CLionProjects/Game/logic/managers -I/Users/ivanalejnikov/CLionProjects/Game/map -I/Users/ivanalejnikov/CLionProjects/Game/map/cells
+  INCLUDES = -I/Users/ivanalejnikov/CLionProjects/Game/entites -I/Users/ivanalejnikov/CLionProjects/Game/entites/Spells -I/Users/ivanalejnikov/CLionProjects/Game/logic -I/Users/ivanalejnikov/CLionProjects/Game/logic/managers -I/Users/ivanalejnikov/CLionProjects/Game/map -I/Users/ivanalejnikov/CLionProjects/Game/map/cells -I/Users/ivanalejnikov/CLionProjects/Game/map/cells/Events
   OBJECT_DIR = CMakeFiles/Game.dir
   OBJECT_FILE_DIR = CMakeFiles/Game.dir/map/cells
+
+build CMakeFiles/Game.dir/map/cells/Events/TrapEvent.cpp.o: CXX_COMPILER__Game_unscanned_Debug /Users/ivanalejnikov/CLionProjects/Game/map/cells/Events/TrapEvent.cpp || cmake_object_order_depends_target_Game
+  DEP_FILE = CMakeFiles/Game.dir/map/cells/Events/TrapEvent.cpp.o.d
+  FLAGS = -g -std=gnu++20 -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX13.3.sdk -fcolor-diagnostics
+  INCLUDES = -I/Users/ivanalejnikov/CLionProjects/Game/entites -I/Users/ivanalejnikov/CLionProjects/Game/entites/Spells -I/Users/ivanalejnikov/CLionProjects/Game/logic -I/Users/ivanalejnikov/CLionProjects/Game/logic/managers -I/Users/ivanalejnikov/CLionProjects/Game/map -I/Users/ivanalejnikov/CLionProjects/Game/map/cells -I/Users/ivanalejnikov/CLionProjects/Game/map/cells/Events
+  OBJECT_DIR = CMakeFiles/Game.dir
+  OBJECT_FILE_DIR = CMakeFiles/Game.dir/map/cells/Events
 
 
 # =============================================================================
@@ -155,7 +232,7 @@ build CMakeFiles/Game.dir/map/cells/SlowingCell.cpp.o: CXX_COMPILER__Game_unscan
 #############################################
 # Link the executable Game
 
-build Game: CXX_EXECUTABLE_LINKER__Game_Debug CMakeFiles/Game.dir/main.cpp.o CMakeFiles/Game.dir/entites/Player.cpp.o CMakeFiles/Game.dir/entites/Enemy.cpp.o CMakeFiles/Game.dir/entites/EnemyBuilding.cpp.o CMakeFiles/Game.dir/entites/Entity.cpp.o CMakeFiles/Game.dir/entites/Weapon.cpp.o CMakeFiles/Game.dir/logic/managers/EnemyBuildingManager.cpp.o CMakeFiles/Game.dir/logic/managers/EnemyManager.cpp.o CMakeFiles/Game.dir/logic/managers/PlayerManager.cpp.o CMakeFiles/Game.dir/logic/World.cpp.o CMakeFiles/Game.dir/map/Field.cpp.o CMakeFiles/Game.dir/map/cells/Cell.cpp.o CMakeFiles/Game.dir/map/cells/ImpassableCell.cpp.o CMakeFiles/Game.dir/map/cells/SlowingCell.cpp.o
+build Game: CXX_EXECUTABLE_LINKER__Game_Debug CMakeFiles/Game.dir/main.cpp.o CMakeFiles/Game.dir/entites/Ally.cpp.o CMakeFiles/Game.dir/entites/Enemy.cpp.o CMakeFiles/Game.dir/entites/EnemyBuilding.cpp.o CMakeFiles/Game.dir/entites/EnemyTower.cpp.o CMakeFiles/Game.dir/entites/Entity.cpp.o CMakeFiles/Game.dir/entites/Hand.cpp.o CMakeFiles/Game.dir/entites/Player.cpp.o CMakeFiles/Game.dir/entites/Weapon.cpp.o CMakeFiles/Game.dir/entites/Spells/DirDamageSpell.cpp.o CMakeFiles/Game.dir/entites/Spells/TrapSpell.cpp.o CMakeFiles/Game.dir/entites/Spells/AreaDmgSpell.cpp.o CMakeFiles/Game.dir/entites/Spells/EnhacementSpell.cpp.o CMakeFiles/Game.dir/entites/Spells/SummSpell.cpp.o CMakeFiles/Game.dir/logic/managers/AllyManager.cpp.o CMakeFiles/Game.dir/logic/managers/EnemyBuildingManager.cpp.o CMakeFiles/Game.dir/logic/managers/EnemyManager.cpp.o CMakeFiles/Game.dir/logic/managers/EnemyTowerManager.cpp.o CMakeFiles/Game.dir/logic/managers/PlayerManager.cpp.o CMakeFiles/Game.dir/logic/World.cpp.o CMakeFiles/Game.dir/map/Field.cpp.o CMakeFiles/Game.dir/map/cells/Cell.cpp.o CMakeFiles/Game.dir/map/cells/ImpassableCell.cpp.o CMakeFiles/Game.dir/map/cells/SlowingCell.cpp.o CMakeFiles/Game.dir/map/cells/Events/TrapEvent.cpp.o
   FLAGS = -g -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX13.3.sdk
   OBJECT_DIR = CMakeFiles/Game.dir
   POST_BUILD = :

@@ -209,3 +209,15 @@ bool Field::GetPosEntity(std::shared_ptr<Entity> entity, int& x, int& y){
 bool Field::CorrectPosition(int x, int y) const{
     return (x < width_ && y < height_ && x >= 0 && y >= 0);
 }
+
+std::shared_ptr<Entity> Field::GetEntity(int x, int y) const {
+	if (CorrectPosition(x, y))
+		return field_[y][x]->GetEntity();
+
+	return nullptr;
+}
+
+
+std::shared_ptr<Cell>  Field::GetCell (int x, int y) {
+	return field_[y][x];
+}

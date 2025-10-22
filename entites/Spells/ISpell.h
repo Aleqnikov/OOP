@@ -1,14 +1,38 @@
 #ifndef ISPELL_H
 #define ISPELL_H
 
-class ISpell{
-private:
-public:
-	virtual ~ISpell() = default;
-	virtual ISpell getSpellType() const = 0;
-	int useSpell();
+#include <memory>
+#include "../Entity.h"
 
+// Forward declaration для избежания циклических зависимостей
+class Field; // Предварительное объявление вместо #include "../../map/Field.h"
+class Cell;
+class Hand;
+
+enum class SpellType {
+    None,
+    AreaDmg,
+    DirDmg,
+    Enhancement,
+    Summon,
+    Trap,
 };
 
+struct SpellContext {
+    std::shared_ptr<Entity> caster;
+    std::shared_ptr<Entity> target;
+    Field* field = nullptr;
+    std::shared_ptr<Cell> cell;
+	int base_x, base_y;
+	std::shared_ptr<Hand> hand;
+};
 
-#endif //ISPELL_H
+class ISpell {
+public:
+    virtual ~ISpell() = default;
+    virtual SpellType getSpellType() const = 0;
+    virtual void upgrade() = 0;
+    virtual bool use(const SpellContext& context) = 0;
+};
+
+#endif // ISPELL_H

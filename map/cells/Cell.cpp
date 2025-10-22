@@ -7,8 +7,14 @@ MoveResult Cell::EnterEntity(std::shared_ptr<Entity> entity) {
     if (entity->IsStatic())
         return MoveResult::Blocked;
 
-	if (this->entity_ == nullptr) {
-        this->entity_ = entity;
+	if (entity_ == nullptr) {
+        entity_ = entity;
+
+		if (event_) {
+			event_->activateIvent(entity_);
+			event_ = nullptr;
+		}
+
         return MoveResult::Moved;
     }
 
@@ -47,3 +53,18 @@ bool Cell::IsEmpty() const {
 bool  Cell::EqualEntites(std::shared_ptr<Entity> entity) {
     return entity_ == entity;
 }
+
+bool Cell::SetEvent(std::shared_ptr<IEvent> event) {
+	if (!event_) {
+		event_ = event;
+		 return true;
+	}
+	return false;
+
+}
+
+
+std::shared_ptr<IEvent> Cell::GetEvent() {
+	return event_;
+}
+

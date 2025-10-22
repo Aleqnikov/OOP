@@ -7,8 +7,10 @@ Player::Player()
 
 Player::Player(int hp, int damage, int attack_radius)
 	: Entity(),
-	  score_(0),
-	  weapon_(std::make_shared<Weapon>(damage, attack_radius)) {
+	  score_(1000),
+	  weapon_(std::make_shared<Weapon>(damage, attack_radius))
+{
+	hand_ = std::make_shared<Hand>(5);
 	hp_ = hp > 0 ? hp : 100;
 }
 
@@ -34,4 +36,21 @@ int Player::GetDamage() const {
 
 std::shared_ptr<Entity> Player::clone() const {
 	return std::make_shared<Player>(*this);
+}
+
+int Player::GetScore() {
+	return score_;
+}
+void Player::minusScore(int sum) {
+	if (score_ > sum) {
+		score_ -= sum;
+	}
+}
+void Player::addScore(int add) {
+	if (add > 0)
+		score_ += add;
+}
+
+std::shared_ptr<Hand> Player::GetHand() {
+	return hand_;
 }

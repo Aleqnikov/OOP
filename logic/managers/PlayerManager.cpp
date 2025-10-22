@@ -1,109 +1,256 @@
 #include "PlayerManager.h"
-#include "EnemyBuildingManager.h"
-#include "EnemyManager.h"
 #include "../World.h"
 #include <iostream>
 #include <sstream>
+#include <cmath>
+#include <map>
 
 void PlayerManager::SpawnPlayer(Field& field, std::shared_ptr<Player> player) {
     field.SetEntity(player, 0, 0);
 }
 
-bool PlayerManager::PlayerTurn(std::shared_ptr<Player> player, PlayerEvents event) {
-    if (player->NotMoveNext())
-        return true;
-
-    if (event != PlayerEvents::ChangeMod)
+bool PlayerManager::ChangeAttackMode(std::shared_ptr<Player> player) {
+    if (!player || player->NotMoveNext())
         return false;
 
     player->ChangeAttackMod();
     return true;
 }
 
-bool PlayerManager::PlayerTurn(std::shared_ptr<Player> player, PlayerEvents event, int x, int y, Field& field, World& world) {
-    if (player->NotMoveNext())
-        return true;
-
-    if (event != PlayerEvents::Attack)
+bool PlayerManager::Attack(std::shared_ptr<Player> player, int x, int y,
+                           Field& field, World& world) {
+    if (!player || player->NotMoveNext())
         return false;
 
-    int x_player, y_player;
-    if (!field.GetPosEntity(player, x_player, y_player))
+    if (!isInAttackRange(player, x, y, field))
         return false;
 
-    int rad_attack = player->GetAttackRadius();
-    if (std::pow(y - y_player, 2) + std::pow(x - x_player, 2) > std::pow(rad_attack, 2))
-        return false;
-
-    std::shared_ptr<Entity> target = nullptr;
-    int x_e, y_e;
-    for (const auto& enemy_weak : world.Enemies().GetEnemies()) {
-        if (auto enemy = enemy_weak.lock()) {
-            if (field.GetPosEntity(enemy, x_e, y_e) && x_e == x && y_e == y) {
-                target = enemy;
-                break;
-            }
-        }
-    }
-
-    for (const auto& building_weak : world.EnemiesBuildings().GetEnemiesBuildings()) {
-        if (auto building = building_weak.lock()) {
-            if (field.GetPosEntity(building, x_e, y_e) && x_e == x && y_e == y) {
-                target = building;
-                break;
-            }
-        }
-    }
-
+    std::shared_ptr<Entity> target = findTargetAt(x, y, field, world);
     if (!target)
         return false;
 
     target->CauseDamage(player->GetDamage());
+    player->addScore(10);
+
+    if (target->IsDead()) {
+        player->addScore(20);
+    }
+
     return true;
 }
 
-bool PlayerManager::PlayerTurn(std::shared_ptr<Player> player, PlayerEvents event, MoveType move_type, Field& field) {
-    if (player->NotMoveNext())
-        return true;
-
-    if (event != PlayerEvents::Move)
+bool PlayerManager::Move(std::shared_ptr<Player> player, MoveType move_type, Field& field) {
+    if (!player || player->NotMoveNext())
         return false;
 
     return field.MoveEntity(move_type, player) == MoveResult::Moved;
 }
 
+bool PlayerManager::BuySpell(std::shared_ptr<Player> player) {
+	if (!player || player->NotMoveNext())
+		return false;
+
+	auto hand = player->GetHand();
+	if (hand->isFull()) {
+		std::cout << "Your hand is full!\n";
+		return false;
+	}
+
+	// Список заклинаний с ценами
+	std::map<int, std::pair<std::shared_ptr<ISpell>, int>> shop = {
+		{1, {std::make_shared<DirDamageSpell>(2, 10), 10}},
+		{2, {std::make_shared<TrapSpell>(50), 50}},
+		{3, {std::make_shared<AreaDmgSpell>(4, 20), 40}},
+		{4, {std::make_shared<EnhacementSpell>(), 100}}, // Исправляем
+		{5, {std::make_shared<SummSpell>(1), 2}}
+	};
+	std::cout << "Available spells:\n";
+	for (auto& [key, val] : shop) {
+		if (player->GetScore() >= val.second) {
+			std::cout << key << ": ";
+			switch (val.first->getSpellType()) {
+				case SpellType::DirDmg: std::cout << "DirDamage"; break;
+				case SpellType::AreaDmg: std::cout << "AreaDamage"; break;
+				case SpellType::Enhancement: std::cout << "Enhancement"; break;
+				case SpellType::Summon: std::cout << "Summon"; break;
+				case SpellType::Trap: std::cout << "Trap"; break;
+				default: std::cout << "Unknown"; break;
+			}
+			std::cout << " (Price: " << val.second << ")\n";
+		}
+	}
+
+	int choice;
+	std::cout << "Enter spell number to buy: ";
+	std::cin >> choice;
+
+	auto it = shop.find(choice);
+	if (it == shop.end() || player->GetScore() < it->second.second) {
+		std::cout << "Invalid choice or not enough score!\n";
+		return false;
+	}
+
+	player->minusScore(it->second.second);
+	hand->addSpell(it->second.first);
+
+	std::cout << "Spell purchased!\n";
+	return true;
+}
+
+
+bool PlayerManager::CastSpell(std::shared_ptr<Player> player, size_t spell_index,
+							  int x, int y, Field& field, World& world) {
+	if (!player || player->NotMoveNext())
+		return false;
+
+	auto spell = player->GetHand()->getSpell(spell_index);
+	if (!spell) return false;
+
+	SpellContext context;
+	context.caster = player;
+	context.field = &field;
+	context.cell = field.GetCell(x, y);
+	context.target = context.cell ? context.cell->GetEntity() : nullptr;
+	context.base_x = x, context.base_y = y;
+	context.hand = player->GetHand();
+
+	bool result = spell->use(context);
+
+
+
+
+	return result;
+}
+
+
 void PlayerManager::ManagePlayerTurn(std::shared_ptr<Player> player, Field& field, World& world) {
     std::string input;
     std::getline(std::cin, input);
 
-    if (input.empty()) return;
+    if (input.empty())
+        return;
 
     char command = input[0];
+
     switch (command) {
         case 'w':
-            PlayerTurn(player, PlayerEvents::Move, MoveType::Forward, field);
+            Move(player, MoveType::Forward, field);
             break;
+
         case 's':
-            PlayerTurn(player, PlayerEvents::Move, MoveType::Back, field);
+            Move(player, MoveType::Back, field);
             break;
+
         case 'a':
-            PlayerTurn(player, PlayerEvents::Move, MoveType::Left, field);
+            Move(player, MoveType::Left, field);
             break;
+
         case 'd':
-            PlayerTurn(player, PlayerEvents::Move, MoveType::Right, field);
+            Move(player, MoveType::Right, field);
             break;
+
         case 'r':
-            PlayerTurn(player, PlayerEvents::ChangeMod);
+            ChangeAttackMode(player);
             break;
+
+        case 'b':
+            BuySpell(player);
+            break;
+
         case 'e': {
             int x, y;
             std::stringstream ss(input.substr(1));
             if (ss >> x >> y) {
-                std::cout << PlayerTurn(player, PlayerEvents::Attack, x, y, field, world) << std::endl;
+                bool result = Attack(player, x, y, field, world);
+                std::cout << (result ? "Attack successful!" : "Attack failed!") << std::endl;
+            } else {
+                std::cout << "Invalid attack coordinates. Use: e X Y" << std::endl;
             }
             break;
         }
+
+    	case 'q': {
+        	auto hand = player->GetHand();
+
+        	std::cout << "Your spells:\n";
+        	for (size_t i = 0; i < hand->size(); ++i) {
+        		auto spell = hand->getSpell(i);
+        		std::cout << i << ": ";
+        		switch (spell->getSpellType()) {
+        			case SpellType::DirDmg: std::cout << "DirDamage"; break;
+        			case SpellType::AreaDmg: std::cout << "AreaDamage"; break;
+        			case SpellType::Enhancement: std::cout << "Enhancement"; break;
+        			case SpellType::Summon: std::cout << "Summon"; break;
+        			case SpellType::Trap: std::cout << "Trap"; break;
+        			default: std::cout << "Unknown"; break;
+        		}
+        		std::cout << "\n";
+        	}
+
+        	int spell_idx;
+        	std::cout << "Enter spell index: ";
+        	std::cin >> spell_idx;
+        	if (spell_idx < 0 || spell_idx >= static_cast<int>(hand->size())) {
+        		std::cout << "Invalid index!\n";
+        		break;
+        	}
+
+        	int x, y;
+        	std::cout << "Enter target X Y: ";
+        	std::cin >> x >> y;
+
+        	auto spell = hand->getSpell(spell_idx);
+
+        	bool result = CastSpell(player, spell_idx, x, y, field, world);
+        	std::cout << (result ? "Spell cast!" : "Spell failed!") << std::endl;
+
+        	hand->removeSpell(spell_idx);
+
+        	break;
+    	}
+
         default:
+            std::cout << "Unknown command: " << command << std::endl;
+            std::cout << "Available commands: w/a/s/d (move), r (change mode), b (buy), e X Y (attack), q I X Y (cast spell)" << std::endl;
             break;
     }
+}
+
+// Private helper methods
+
+std::shared_ptr<Entity> PlayerManager::findTargetAt(int x, int y, Field& field, World& world) {
+    int x_e, y_e;
+
+    // Ищем среди врагов
+    for (const auto& enemy_weak : world.Enemies().GetEnemies()) {
+        if (auto enemy = enemy_weak.lock()) {
+            if (field.GetPosEntity(enemy, x_e, y_e) && x_e == x && y_e == y) {
+                return enemy;
+            }
+        }
+    }
+
+    // Ищем среди вражеских строений
+    for (const auto& building_weak : world.EnemiesBuildings().GetEnemiesBuildings()) {
+        if (auto building = building_weak.lock()) {
+            if (field.GetPosEntity(building, x_e, y_e) && x_e == x && y_e == y) {
+                return building;
+            }
+        }
+    }
+
+    return nullptr;
+}
+
+bool PlayerManager::isInAttackRange(std::shared_ptr<Player> player, int target_x, int target_y, Field& field) {
+    int player_x, player_y;
+    if (!field.GetPosEntity(player, player_x, player_y))
+        return false;
+
+    int attack_radius = player->GetAttackRadius();
+    int dx = target_x - player_x;
+    int dy = target_y - player_y;
+    int distance_squared = dx * dx + dy * dy;
+
+    return distance_squared <= attack_radius * attack_radius;
 }

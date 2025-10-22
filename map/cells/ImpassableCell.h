@@ -16,6 +16,9 @@ public:
         return c;
     }
 
+
+	bool SetEvent(std::shared_ptr<IEvent>);
+
 private:
     // For Impasseble cell always not have entity.
     ImpassableCell(std::shared_ptr<Entity>) = delete;

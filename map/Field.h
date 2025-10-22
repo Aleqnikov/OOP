@@ -51,6 +51,10 @@ public:
 
 	bool CorrectPosition(int, int) const;
 
+	std::shared_ptr<Entity> GetEntity(int, int) const;
+	std::shared_ptr<Cell>  GetCell (int, int);
+
+
 	// Maybe temporary for detected type of the cell. Neede to visualise field cells.
 	std::string GetCellType(int x, int y) const { return field_[y][x]->GetName(); }
 
@@ -58,7 +62,7 @@ private:
 	int height_;
 	int width_;
 	int count_spawn_cells_;
-	std::vector<std::vector<std::shared_ptr<Cell> > > field_;
+	std::vector<std::vector<std::shared_ptr<Cell>>> field_;
 
 	void CreateField(int, int);
 };

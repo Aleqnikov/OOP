@@ -6,6 +6,7 @@
 
 #include "../../entites/Entity.h"
 #include "../../entites/Player.h"
+#include "Events/IEvent.h"
 
 enum class MoveResult {
 	BlockedByWall,
@@ -39,12 +40,16 @@ public:
 		return c;
 	}
 
+	bool SetEvent(std::shared_ptr<IEvent>);
+	std::shared_ptr<IEvent> GetEvent();
+
 	std::shared_ptr<Entity> GetEntity() const { return entity_; }
 
 	virtual std::string GetName() const { return "Cell"; }
 
 protected:
 	std::shared_ptr<Entity> entity_;
+	std::shared_ptr<IEvent> event_;
 };
 
 #endif //CELL_H
