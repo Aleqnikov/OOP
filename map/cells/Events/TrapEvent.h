@@ -3,7 +3,6 @@
 
 #include "IEvent.h"
 
-
 class TrapEvent : public IEvent{
 public:
 	TrapEvent();
@@ -15,7 +14,6 @@ public:
 private:
 	int damage_;
 };
-
 
 
 #endif //TRAPEVENT_H

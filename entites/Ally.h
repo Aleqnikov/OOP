@@ -7,7 +7,6 @@ class Ally : public Entity{
 public:
 	Ally();
 	bool IsFriendly() const override;
-	std::shared_ptr<Entity> clone() const override;
 };
 
 

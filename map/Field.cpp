@@ -1,12 +1,9 @@
-#include <random>
-#include <memory>
 
 #include "Field.h"
 
-#include "./cells/SlowingCell.h"
-#include "./cells/ImpassableCell.h"
-#include "../entites/Enemy.h"
-#include "../entites/EnemyBuilding.h"
+
+
+Field::Field() : Field(10, 10) {};
 
 Field::Field(int width, int height, int count_impassable, int count_slowing)
     : width_((width >= 10 && width <= 25) ? width : 10),
@@ -19,25 +16,20 @@ Field::Field(int width, int height, int count_impassable, int count_slowing)
     CreateField(count_slowing, count_impassable);
 }
 
-// We choise very big values because constuctor create a good values.
-Field::Field(int width, int height) : Field(width, height, width*height, width*height) {};
+Field::Field(int width, int height) : Field(width, height, width*height, width*height) {}
 
 
-// ИСПРАВЛЕННЫЙ конструктор копирования
 Field::Field(const Field& other)
     : width_(other.width_), height_(other.height_), count_spawn_cells_(other.count_spawn_cells_) {
     field_.resize(height_);
     for (int i = 0; i < height_; ++i) {
         field_[i].resize(width_);
         for (int j = 0; j < width_; ++j) {
-            // Клонируем КЛЕТКУ (глубокое копирование структуры поля)
-            field_[i][j] = other.field_[i][j]->clone();
+            field_[i][j] = other.field_[i][j]->cloneStructure();
 
-            // Но СУЩНОСТЬ не клонируем - делим владение через shared_ptr!
             if (!other.field_[i][j]->IsEmpty()) {
                 auto entity = other.field_[i][j]->GetEntity();
                 if (entity) {
-                    // Используем тот же shared_ptr - разделенное владение
                     field_[i][j]->SpawnEntity(entity);
                 }
             }
@@ -55,7 +47,6 @@ Field::Field(Field&& other)
     other.field_.clear();
 }
 
-// ИСПРАВЛЕННЫЙ оператор присваивания копированием
 Field& Field::operator=(const Field& other) {
     if (this != &other) {
         width_ = other.width_;
@@ -66,10 +57,8 @@ Field& Field::operator=(const Field& other) {
         for (int i = 0; i < height_; ++i) {
             field_[i].resize(width_);
             for (int j = 0; j < width_; ++j) {
-                // Клонируем клетку
-                field_[i][j] = other.field_[i][j]->clone();
+                field_[i][j] = other.field_[i][j]->cloneStructure();
 
-                // Сущность не клонируем - разделяем владение
                 if (!other.field_[i][j]->IsEmpty()) {
                     auto entity = other.field_[i][j]->GetEntity();
                     if (entity) {
@@ -163,7 +152,6 @@ MoveResult Field::MoveEntity(MoveType move, std::shared_ptr<Entity> entity) {
     return res;
 }
 
-
 bool Field::SetEntity(std::shared_ptr<Entity> entity, int x, int y) {
     if (!CorrectPosition(x, y))
         return false;
@@ -217,7 +205,10 @@ std::shared_ptr<Entity> Field::GetEntity(int x, int y) const {
 	return nullptr;
 }
 
-
-std::shared_ptr<Cell>  Field::GetCell (int x, int y) {
+std::shared_ptr<Cell> Field::GetCell(int x, int y) {
 	return field_[y][x];
+}
+
+std::string Field::GetCellType(int x, int y) const {
+	return field_[y][x]->GetName();
 }

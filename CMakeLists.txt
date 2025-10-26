@@ -19,9 +19,7 @@ set(SOURCE_FILES
         entites/Spells/AreaDmgSpell.cpp
         entites/Spells/EnhacementSpell.cpp
         entites/Spells/SummSpell.cpp
-        logic/managers/AllyManager.cpp
         logic/managers/EnemyBuildingManager.cpp
-        logic/managers/EnemyManager.cpp
         logic/managers/EnemyTowerManager.cpp
         logic/managers/PlayerManager.cpp
         logic/World.cpp

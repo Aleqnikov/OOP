@@ -8,7 +8,7 @@ enum class AttackMod {
 
 class Weapon {
 public:
-	Weapon(int damage = 50, int attack_radius = 2, AttackMod mode = AttackMod::RangeCombat);
+	Weapon(int = 50, int s = 2, AttackMod  = AttackMod::RangeCombat);
 	void ChangeAttackMod();
 	int GetDamage() const;
 	int GetAttackRadius() const;

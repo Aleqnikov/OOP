@@ -8,6 +8,3 @@ bool Enemy::IsFriendly() const {
 	return false;
 }
 
-std::shared_ptr<Entity> Enemy::clone() const {
-	return std::make_shared<Enemy>(*this);
-}

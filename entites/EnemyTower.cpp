@@ -17,9 +17,7 @@ bool EnemyTower::IsFriendly() const {
 	return false;
 }
 
-std::shared_ptr<Entity> EnemyTower::clone() const {
-	return std::make_shared<EnemyTower>(*this);
-}
+
 
 std::shared_ptr<IDirDmgSpell> EnemyTower::canAttack() {
 	if (current_tick_ != 0) {

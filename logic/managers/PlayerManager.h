@@ -15,20 +15,19 @@ class World;
 
 class PlayerManager {
 public:
-	void SpawnPlayer(Field& field, std::shared_ptr<Player> player);
+	void SpawnPlayer(Field&, std::shared_ptr<Player>);
 
-	// Новые методы с понятными именами
-	bool ChangeAttackMode(std::shared_ptr<Player> player);
-	bool Attack(std::shared_ptr<Player> player, int x, int y, Field& field, World& world);
-	bool Move(std::shared_ptr<Player> player, MoveType move_type, Field& field);
-	bool BuySpell(std::shared_ptr<Player> player);
-	bool CastSpell(std::shared_ptr<Player> player, size_t spell_index, int x, int y, Field& field, World& world);
+	bool ChangeAttackMode(std::shared_ptr<Player>);
+	bool Attack(std::shared_ptr<Player>, int, int, Field&, World&);
+	bool Move(std::shared_ptr<Player>, MoveType, Field&);
+	bool BuySpell(std::shared_ptr<Player>);
+	bool CastSpell(std::shared_ptr<Player>, size_t, int, int, Field&, World&);
 
-	void ManagePlayerTurn(std::shared_ptr<Player> player, Field& field, World& world);
+	void ManagePlayerTurn(std::shared_ptr<Player>, Field&, World&);
 
 private:
-	std::shared_ptr<Entity> findTargetAt(int x, int y, Field& field, World& world);
-	bool isInAttackRange(std::shared_ptr<Player> player, int target_x, int target_y, Field& field);
+	std::shared_ptr<Entity> findTargetAt(int, int, Field&, World&);
+	bool isInAttackRange(std::shared_ptr<Player>, int, int, Field&);
 };
 
 #endif // PLAYERMANAGER_H

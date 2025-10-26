@@ -1,30 +1,32 @@
 #ifndef WORLD_H
 #define WORLD_H
 
-#include "./managers/EnemyManager.h"
+#include "./managers/EntityManager.h"
 #include "./managers/EnemyBuildingManager.h"
 #include "./managers/EnemyTowerManager.h"
-#include "./managers/AllyManager.h"
 #include "./managers/PlayerManager.h"
 #include "../map/Field.h"
+#include "../entites/Enemy.h"
+#include "../entites/Ally.h"
 
 class World {
 public:
-	void Init(Field& field, std::shared_ptr<Player> player, int count_enemies, int count_buildings, int count_towers, int count_allies);
-	void Update(Field& field, std::shared_ptr<Player> player);
-	void DeleteDeadEntites(Field& field);
+	void Init(Field&, std::shared_ptr<Player>, int, int, int, int);
+	void Update(Field&, std::shared_ptr<Player>);
+	void DeleteDeadEntites(Field&);
+
 	PlayerManager& PlayerMan();
-	EnemyManager& Enemies();
+	EntityManager<Enemy>& Enemies();
 	EnemyBuildingManager& EnemiesBuildings();
 	EnemyTowerManager& EnemiesTowers();
-	AllyManager& Allyes();
+	EntityManager<Ally>& Allyes();
 
 private:
-	EnemyManager enemyManager_;
-	PlayerManager playerManager_;
+	EntityManager<Enemy> enemyManager_;
 	EnemyBuildingManager buildingManager_;
 	EnemyTowerManager towerManager_;
-	AllyManager allyManager_;
+	EntityManager<Ally> allyManager_;
+	PlayerManager playerManager_;
 };
 
 #endif // WORLD_H

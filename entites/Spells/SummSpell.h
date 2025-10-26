@@ -10,7 +10,7 @@ public:
 
 	int getAllyCount() const override;
 	void upgrade(int) override;
-	bool use(const SpellContext& context) override;
+	bool use(const SpellContext&) override;
 	SpellType getSpellType() const override;
 
 private:

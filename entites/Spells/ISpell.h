@@ -32,7 +32,7 @@ public:
     virtual ~ISpell() = default;
     virtual SpellType getSpellType() const = 0;
     virtual void upgrade(int) = 0;
-    virtual bool use(const SpellContext& context) = 0;
+    virtual bool use(const SpellContext&) = 0;
 };
 
 #endif // ISPELL_H

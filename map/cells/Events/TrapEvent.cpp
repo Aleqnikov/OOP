@@ -8,7 +8,6 @@ void TrapEvent::activateIvent(std::shared_ptr<Entity> entity){
 	entity->CauseDamage(damage_);
 }
 
-
 EventType TrapEvent::getType(){
 	return EventType::Trap;
 }

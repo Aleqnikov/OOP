@@ -44,3 +44,7 @@ bool DirDamageSpell::use(const SpellContext& context) {
 void DirDamageSpell::upgrade(int coeficient) {
 	range_ *= coeficient;
 }
+
+SpellType DirDamageSpell::getSpellType() const {
+	return SpellType::DirDmg;
+}

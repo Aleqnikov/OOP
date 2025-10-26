@@ -9,7 +9,6 @@ public:
 	EnemyTower();
 	EnemyTower(int, int);
 	bool IsFriendly() const override;
-	std::shared_ptr<Entity> clone() const override;
 
 	std::shared_ptr<IDirDmgSpell> canAttack();
 

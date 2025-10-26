@@ -18,9 +18,9 @@ public:
 	Hand();
 	explicit Hand(int limit);
 
-	bool addSpell(std::shared_ptr<ISpell> spell);
-	std::shared_ptr<ISpell> getSpell(size_t index);
-	bool removeSpell(size_t index);
+	bool addSpell(std::shared_ptr<ISpell>);
+	std::shared_ptr<ISpell> getSpell(size_t);
+	bool removeSpell(size_t);
 
 	void setUpgradeCoef(int);
 	int isUpgradeEnabled() const;

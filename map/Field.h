@@ -1,8 +1,14 @@
 #ifndef FIELD_H
 #define FIELD_H
 
+#include <random>
 #include <vector>
+
 #include "./cells/Cell.h"
+#include "./cells/SlowingCell.h"
+#include "./cells/ImpassableCell.h"
+#include "../entites/Enemy.h"
+#include "../entites/EnemyBuilding.h"
 
 enum class MoveType {
 	Forward,
@@ -11,33 +17,26 @@ enum class MoveType {
 	Right
 };
 
-/**
- * @brief This class was the realisation of the game field he was a only
- * conventional unit. Inside located logic - move entity on field remote entity on field
- * find entity position and setters/getters. Have a contsructors moving and copy.
- */
+
 class Field {
 public:
-	Field() : Field(10, 10) {
-	};
+	Field();
 
 	Field(int, int);
 
 	Field(int, int, int, int);
 
-	// Констуктор копирования (я знаю, но пишу на всякий случай)
 	Field(const Field &);
 
-	// Конструктор перемещения (не выбрасывает исключений)
 	Field(Field &&);
 
 	// Оператор копирования
-	Field &operator=(const Field &);
+	Field &operator=(const Field&);
 
 	// Оператор перемещения
-	Field &operator=(Field &&);
+	Field &operator=(Field&&);
 
-	MoveResult MoveEntity(MoveType move, std::shared_ptr<Entity>);
+	MoveResult MoveEntity(MoveType, std::shared_ptr<Entity>);
 
 	bool SetEntity(std::shared_ptr<Entity>, int, int);
 
@@ -45,7 +44,7 @@ public:
 
 	int GetCountSpawnCells();
 
-	void GetSize(int &, int &);
+	void GetSize(int&, int&);
 
 	bool GetPosEntity(std::shared_ptr<Entity>, int &, int &);
 
@@ -54,9 +53,7 @@ public:
 	std::shared_ptr<Entity> GetEntity(int, int) const;
 	std::shared_ptr<Cell>  GetCell (int, int);
 
-
-	// Maybe temporary for detected type of the cell. Neede to visualise field cells.
-	std::string GetCellType(int x, int y) const { return field_[y][x]->GetName(); }
+	std::string GetCellType(int, int) const;
 
 private:
 	int height_;

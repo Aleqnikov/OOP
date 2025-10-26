@@ -1,4 +1,3 @@
-// EnemyTowerManager.h
 #ifndef ENEMYTOWERMANAGER_H
 #define ENEMYTOWERMANAGER_H
 
@@ -10,13 +9,13 @@
 
 class EnemyTowerManager {
 public:
-	bool SpawnEnemiesTowers(Field& field, int count);
-	bool EnemiesTowersTurn(Field& field);
+	bool SpawnEnemiesTowers(Field&, int);
+	bool EnemiesTowersTurn(Field&);
 	const std::vector<std::weak_ptr<EnemyTower>>& GetEnemiesTowers() const;
-	void DeleteDeadEnemiesTowers(Field& field);
+	void DeleteDeadEnemiesTowers(Field&);
 
 private:
-	std::shared_ptr<Entity> findTarget(int x, int y, Field& field);
+	std::shared_ptr<Entity> findTarget(int, int, Field&);
 	std::vector<std::weak_ptr<EnemyTower>> enemies_towers_;
 };
 

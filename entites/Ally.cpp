@@ -8,7 +8,3 @@ Ally::Ally() : Entity() {
 bool Ally::IsFriendly() const {
 	return true;
 }
-
-std::shared_ptr<Entity> Ally::clone() const {
-	return std::make_shared<Ally>(*this);
-}

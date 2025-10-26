@@ -16,36 +16,25 @@ enum class MoveResult {
 	Unreal
 };
 
-
 class Cell {
 public:
-	Cell(std::shared_ptr<Entity> entity) : entity_(entity) {};
-
-	Cell() : entity_(nullptr) {};
+	Cell(std::shared_ptr<Entity> entity);
+	Cell();
 
 	bool IsEmpty() const;
-
 	virtual MoveResult EnterEntity(std::shared_ptr<Entity>);
-
 	bool RemoveEntity(std::shared_ptr<Entity>);
-
 	bool SpawnEntity(std::shared_ptr<Entity>);
-
 	bool EqualEntites(std::shared_ptr<Entity>);
 
-	// For correct deep copy.
-	virtual std::shared_ptr<Cell> clone() const {
-		auto c = std::make_shared<Cell>();
-		if (entity_) c->SpawnEntity(entity_->clone());
-		return c;
-	}
+	virtual std::shared_ptr<Cell> cloneStructure() const;
 
 	bool SetEvent(std::shared_ptr<IEvent>);
 	std::shared_ptr<IEvent> GetEvent();
 
-	std::shared_ptr<Entity> GetEntity() const { return entity_; }
+	std::shared_ptr<Entity> GetEntity() const;
 
-	virtual std::string GetName() const { return "Cell"; }
+	virtual std::string GetName() const;
 
 protected:
 	std::shared_ptr<Entity> entity_;

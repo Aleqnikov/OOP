@@ -11,7 +11,7 @@ public:
 
 
 	virtual int getTrapDamage() const = 0;
-	virtual void placeTrap(std::shared_ptr<Cell> cell) = 0;
+	virtual void placeTrap(std::shared_ptr<Cell>) = 0;
 };
 
 #endif //ITRAPSPELL_H

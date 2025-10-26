@@ -218,14 +218,10 @@ void PlayerManager::ManagePlayerTurn(std::shared_ptr<Player> player, Field& fiel
             break;
     }
 }
-
-// Private helper methods
-
 std::shared_ptr<Entity> PlayerManager::findTargetAt(int x, int y, Field& field, World& world) {
     int x_e, y_e;
 
-    // Ищем среди врагов
-    for (const auto& enemy_weak : world.Enemies().GetEnemies()) {
+    for (const auto& enemy_weak : world.Enemies().GetEntities()) {
         if (auto enemy = enemy_weak.lock()) {
             if (field.GetPosEntity(enemy, x_e, y_e) && x_e == x && y_e == y) {
                 return enemy;

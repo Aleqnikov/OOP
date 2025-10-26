@@ -6,13 +6,12 @@
 #include <memory>
 #include "Hand.h"
 
-// Forward declaration для Hand
 class Hand;
 
 class Player : public Entity {
 public:
 	Player();
-	Player(int hp, int damage, int attack_radius);
+	Player(int, int, int);
 	void ChangeAttackMod();
 	bool IsFriendly() const override;
 	int GetAttackRadius() const;
@@ -24,7 +23,6 @@ public:
 	int GetScore();
 	void minusScore(int);
 	void addScore(int);
-	std::shared_ptr<Entity> clone() const override;
 
 private:
 	int score_;

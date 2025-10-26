@@ -15,7 +15,7 @@ public:
 	void SetNotMoveNext(bool);
 	int GetHP() const;
 	virtual bool IsFriendly() const;
-	virtual std::shared_ptr<Entity> clone() const = 0;
+	virtual ~Entity() = default;
 
 protected:
 	int hp_;

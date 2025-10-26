@@ -24,7 +24,3 @@ bool EnemyBuilding::CanSpawn() {
 bool EnemyBuilding::IsFriendly() const {
 	return false;
 }
-
-std::shared_ptr<Entity> EnemyBuilding::clone() const {
-	return std::make_shared<EnemyBuilding>(*this);
-}

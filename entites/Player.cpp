@@ -34,10 +34,6 @@ int Player::GetDamage() const {
 	return weapon_->GetDamage();
 }
 
-std::shared_ptr<Entity> Player::clone() const {
-	return std::make_shared<Player>(*this);
-}
-
 int Player::GetScore() {
 	return score_;
 }

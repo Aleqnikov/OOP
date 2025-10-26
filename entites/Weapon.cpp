@@ -14,7 +14,6 @@ void Weapon::ChangeAttackMod() {
 		if (attack_radius_ < 1) attack_radius_ = 1;
 		attack_mode_ = AttackMod::CloseCombat;
 	} else {
-
 		damage_ = initial_damage_;
 		attack_radius_ = initial_attack_radius_;
 		attack_mode_ = AttackMod::RangeCombat;

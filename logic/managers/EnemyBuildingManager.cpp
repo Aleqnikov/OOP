@@ -1,5 +1,6 @@
+// EnemyBuildingManager.cpp
 #include "EnemyBuildingManager.h"
-#include "EnemyManager.h"
+#include "EntityManager.h"  // ДОБАВИТЬ ЭТО!
 #include "../World.h"
 #include <random>
 
@@ -46,10 +47,10 @@ bool EnemyBuildingManager::EnemiesBuildingTurn(Field& field, World& world) {
             int dx[4] = {-1, 1, 0, 0};
             int dy[4] = {0, 0, -1, 1};
 
-            EnemyManager& enemies_manager = world.Enemies();
+            auto& enemies_manager = world.Enemies();
             for (int i = 0; i < 4; ++i) {
                 if (field.SetEntity(enemy, building_x + dx[i], building_y + dy[i])) {
-                    enemies_manager.AddEnemy(enemy);
+                    enemies_manager.AddEntity(enemy);
                     break;
                 }
             }

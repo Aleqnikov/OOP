@@ -7,10 +7,10 @@
 class AreaDmgSpell : public IAreaDmgSpell {
 public:
 	AreaDmgSpell();
-	AreaDmgSpell(int area, int damage);
+	AreaDmgSpell(int, int);
 
 	void upgrade(int) override;
-	bool use(const SpellContext& context) override;
+	bool use(const SpellContext&) override;
 
 	int getArea() const override;
 	int getDamage() const override;

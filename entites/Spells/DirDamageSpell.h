@@ -6,13 +6,15 @@
 class DirDamageSpell : public IDirDmgSpell {
 public:
 	DirDamageSpell();
-	DirDamageSpell(int range, int damage);
+	DirDamageSpell(int, int);
 
 	void upgrade(int) override;
-	bool use(const SpellContext& context) override;
+	bool use(const SpellContext&) override;
 
 	int getDamage() const override;
 	int getRange() const override;
+
+	SpellType getSpellType() const override;
 
 private:
 	int damage_;

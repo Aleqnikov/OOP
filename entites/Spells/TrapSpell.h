@@ -11,12 +11,12 @@ public:
 	TrapSpell(int damage);
 
 	void upgrade(int) override;
-	bool use(const SpellContext& context) override;
+	bool use(const SpellContext&) override;
 
 	SpellType getSpellType() const override;
 
-	int getTrapDamage() const ;
-	void placeTrap(std::shared_ptr<Cell> cell);
+	int getTrapDamage() const override;
+	void placeTrap(std::shared_ptr<Cell>) override;
 
 private:
 	int damage_;
