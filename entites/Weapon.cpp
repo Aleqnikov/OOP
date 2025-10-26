@@ -9,13 +9,12 @@ Weapon::Weapon(int damage, int attack_radius, AttackMod mode)
 
 void Weapon::ChangeAttackMod() {
 	if (attack_mode_ == AttackMod::RangeCombat) {
-		// Переход на ближний бой - удваиваем урон, уменьшаем радиус
 		damage_ = initial_damage_ * 2;
 		attack_radius_ = initial_attack_radius_ / 2;
-		if (attack_radius_ < 1) attack_radius_ = 1;  // минимум 1
+		if (attack_radius_ < 1) attack_radius_ = 1;
 		attack_mode_ = AttackMod::CloseCombat;
 	} else {
-		// Переход на дальний бой - возвращаемся к начальным значениям!
+
 		damage_ = initial_damage_;
 		attack_radius_ = initial_attack_radius_;
 		attack_mode_ = AttackMod::RangeCombat;

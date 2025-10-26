@@ -13,7 +13,7 @@ void visualizeField(const std::vector<std::vector<std::string>>& frame, int widt
     std::cout << "Player Score: " << player_score << std::endl;
 
     // Вывод верхней границы поля
-    std::cout << std::string(width * 10 + 1, '+') << std::endl;
+    std::cout << std::string(width * 10 + 1, '-') << std::endl;
 
     // Для каждой строки поля
     for (int i = 0; i < height; ++i) {
@@ -34,7 +34,7 @@ void visualizeField(const std::vector<std::vector<std::string>>& frame, int widt
         std::cout << std::endl;
 
         // Нижняя граница клетки
-        std::cout << std::string(width * 10 + 1, '+') << std::endl;
+        std::cout << std::string(width * 10 + 1, '_') << std::endl;
     }
 }
 
@@ -57,10 +57,10 @@ void drawField(Field& field, World& world, std::shared_ptr<Player> player) {
                     event = "Event";
                 }
             } else {
-                event = "None";
+                event = "    ";
             }
             // Формируем строку: тип клетки + координаты + событие
-            frame[i][j] = cell_type + "(" + std::to_string(j) + "," + std::to_string(i) + "):" + event;
+            frame[i][j] = cell_type + " (" + std::to_string(j) + "," + std::to_string(i) + "):" + event;
         }
     }
 
@@ -69,7 +69,7 @@ void drawField(Field& field, World& world, std::shared_ptr<Player> player) {
         if (auto enemy = enemy_weak.lock()) {
             int x, y;
             if (field.GetPosEntity(enemy, x, y)) {
-                frame[y][x] = "E" + std::to_string(enemy->GetHP()) + "(" + std::to_string(x) + "," + std::to_string(y) + "):None";
+                frame[y][x] = "E " + std::to_string(enemy->GetHP()) + "(" + std::to_string(x) + "," + std::to_string(y) + "):    ";
             }
         }
     }
@@ -79,7 +79,7 @@ void drawField(Field& field, World& world, std::shared_ptr<Player> player) {
         if (auto building = building_weak.lock()) {
             int x, y;
             if (field.GetPosEntity(building, x, y)) {
-                frame[y][x] = "B" + std::to_string(building->GetHP()) + "(" + std::to_string(x) + "," + std::to_string(y) + "):None";
+                frame[y][x] = "B " + std::to_string(building->GetHP()) + "(" + std::to_string(x) + "," + std::to_string(y) + "):    ";
             }
         }
     }
@@ -89,7 +89,7 @@ void drawField(Field& field, World& world, std::shared_ptr<Player> player) {
         if (auto tower = tower_weak.lock()) {
             int x, y;
             if (field.GetPosEntity(tower, x, y)) {
-                frame[y][x] = "T" + std::to_string(tower->GetHP()) + "(" + std::to_string(x) + "," + std::to_string(y) + "):None";
+                frame[y][x] = "T " + std::to_string(tower->GetHP()) + "(" + std::to_string(x) + "," + std::to_string(y) + "):    ";
             }
         }
     }
@@ -99,7 +99,7 @@ void drawField(Field& field, World& world, std::shared_ptr<Player> player) {
         if (auto ally = ally_weak.lock()) {
             int x, y;
             if (field.GetPosEntity(ally, x, y)) {
-                frame[y][x] = "A" + std::to_string(ally->GetHP()) + "(" + std::to_string(x) + "," + std::to_string(y) + "):None";
+                frame[y][x] = "A " + std::to_string(ally->GetHP()) + "(" + std::to_string(x) + "," + std::to_string(y) + "):    ";
             }
         }
     }
@@ -107,7 +107,7 @@ void drawField(Field& field, World& world, std::shared_ptr<Player> player) {
     // Отображение игрока
     int x, y;
     if (field.GetPosEntity(player, x, y)) {
-        frame[y][x] = "P" + std::to_string(player->GetHP()) + "(" + std::to_string(x) + "," + std::to_string(y) + "):None";
+        frame[y][x] = "P" + std::to_string(player->GetHP()) + "(" + std::to_string(x) + "," + std::to_string(y) + "):    ";
     }
 
     // Вывод поля с передачей счета игрока
@@ -117,11 +117,11 @@ void drawField(Field& field, World& world, std::shared_ptr<Player> player) {
 int main() {
     // Создание игрока
     std::shared_ptr<Player> player = std::make_shared<Player>(200, 100, 10);
-    Field field(3, 3, 1, 1); // Поле 3x3, 1 непроходимая, 1 замедляющая клетка
+    Field field(10, 10, 5, 10); // Поле 3x3, 1 непроходимая, 1 замедляющая клетка
     World world;
 
     // Инициализация мира с врагами, зданиями, башнями и союзниками
-    world.Init(field, player, 1, 1, 1, 0); // 1 враг, 1 здание, 1 башня, 1 союзник
+    world.Init(field, player, 0, 0, 20, 0); // 1 враг, 1 здание, 1 башня, 1 союзник
 
     std::cout << "Game started! Commands: w/a/s/d (move), r (change mode), b (buy spell), e X Y (attack), q I X Y (cast spell)\n";
 

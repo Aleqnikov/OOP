@@ -10,7 +10,7 @@ public:
 	TrapSpell();
 	TrapSpell(int damage);
 
-	void upgrade() override;
+	void upgrade(int) override;
 	bool use(const SpellContext& context) override;
 
 	SpellType getSpellType() const override;

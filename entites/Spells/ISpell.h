@@ -31,7 +31,7 @@ class ISpell {
 public:
     virtual ~ISpell() = default;
     virtual SpellType getSpellType() const = 0;
-    virtual void upgrade() = 0;
+    virtual void upgrade(int) = 0;
     virtual bool use(const SpellContext& context) = 0;
 };
 

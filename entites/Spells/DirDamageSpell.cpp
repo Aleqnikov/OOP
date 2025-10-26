@@ -41,6 +41,6 @@ bool DirDamageSpell::use(const SpellContext& context) {
 	return true;
 }
 
-void DirDamageSpell::upgrade() {
-	range_ *= 2;
+void DirDamageSpell::upgrade(int coeficient) {
+	range_ *= coeficient;
 }

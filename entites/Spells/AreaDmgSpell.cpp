@@ -9,8 +9,8 @@ AreaDmgSpell::AreaDmgSpell(int area, int damage) :
 
 
 
-void AreaDmgSpell::upgrade(){
-	area_ *= 2;
+void AreaDmgSpell::upgrade(int coeficient){
+	area_ *= coeficient;
 }
 bool AreaDmgSpell::use(const SpellContext& context) {
 	if (!context.field) {

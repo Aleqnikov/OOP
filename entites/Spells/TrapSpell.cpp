@@ -6,8 +6,8 @@ TrapSpell::TrapSpell() : TrapSpell(10) {};
 TrapSpell::TrapSpell(int damage) : damage_(std::max(1, damage)) {};
 
 
-void TrapSpell::upgrade(){
-	damage_ *= 2;
+void TrapSpell::upgrade(int coeficient){
+	damage_ *= coeficient;
 }
 
 
@@ -18,7 +18,6 @@ bool TrapSpell::use(const SpellContext& context) {
 
 	placeTrap(context.cell);
 
-	std::cout << damage_ << "!!!!!!!!!!!!!___________!!!!!!!!!!" << std::endl;
 	return true;
 }
 

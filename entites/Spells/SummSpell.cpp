@@ -17,8 +17,8 @@ int SummSpell::getAllyCount() const {
 	return count_allies_;
 }
 
-void SummSpell::upgrade() {
-	count_allies_++;
+void SummSpell::upgrade(int coeficient) {
+	count_allies_+= coeficient;
 }
 
 bool SummSpell::use(const SpellContext& context) {

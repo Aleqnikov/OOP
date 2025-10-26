@@ -1,6 +1,9 @@
 #include "EnhacementSpell.h"
 #include "./Hand.h"
 
+EnhacementSpell::EnhacementSpell() : EnhacementSpell(2) {};
+EnhacementSpell::EnhacementSpell(int coef) : enhancement_(std::max(2, coef)) {};
+
 SpellType EnhacementSpell::getSpellType() const  {
 	return SpellType::Enhancement;
 }
@@ -16,9 +19,13 @@ bool EnhacementSpell::use(const SpellContext& context){
 
 
 void EnhacementSpell::applyEnhancement(std::shared_ptr<Hand> hand) {
-	hand->enableNextUpgrade();
+	hand->setUpgradeCoef(enhancement_);
 }
 
-void EnhacementSpell::upgrade() {
-	return;
+void EnhacementSpell::upgrade(int coeficient) {
+	enhancement_ += coeficient;
+}
+
+int EnhacementSpell::getEnhancement()  {
+	return enhancement_;
 }

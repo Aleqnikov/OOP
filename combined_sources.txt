@@ -1,135 +1,143 @@
-Твоя задача - поправить мэйн и другие чтобы все работало Также поправь мэйк entites
-│   ├── Ally.cpp
-│   ├── Ally.h
-│   ├── Enemy.cpp
-│   ├── Enemy.h
-│   ├── EnemyBuilding.cpp
-│   ├── EnemyBuilding.h
-│   ├── EnemyTower.cpp
-│   ├── EnemyTower.h
-│   ├── Entity.cpp
-│   ├── Entity.h
-│   ├── Hand.cpp
-│   ├── Hand.h
-│   ├── Player.cpp
-│   ├── Player.h
-│   ├── Spells
-│   │   ├── DirDamageSpell.cpp
-│   │   ├── DirDamageSpell.h
-│   │   ├── IAreaDmgSpell.h
-│   │   ├── IDirDmgSpell.h
-│   │   ├── IEnhacementSpell.h
-│   │   ├── ISpell.h
-│   │   ├── ISummSpell.h
-│   │   └── ITrapSpell.h
-│   ├── Weapon.cpp
-│   └── Weapon.h
-├── logic
-│   ├── World.cpp
-│   ├── World.h
-│   └── managers
-│       ├── AllyManager.cpp
-│       ├── AllyManager.h
-│       ├── EnemyBuildingManager.cpp
-│       ├── EnemyBuildingManager.h
-│       ├── EnemyManager.cpp
-│       ├── EnemyManager.h
-│       ├── EnemyTowerManager.cpp
-│       ├── EnemyTowerManager.h
-│       ├── PlayerManager.cpp
-│       └── PlayerManager.h
-├── main.cpp
-├── map
-│   ├── Field.cpp
-│   ├── Field.h
-│   └── cells
-│       ├── Cell.cpp
-│       ├── Cell.h
-│       ├── Events
-│       │   ├── IEvent.h
-│       │   ├── TrapEvent.cpp
-│       │   └── TrapEvent.h
-│       ├── ImpassableCell.cpp
-│       ├── ImpassableCell.h
-│       ├── SlowingCell.cpp
-│       └── SlowingCell.h
-└── test.py. 
+
 
 --- FILE: main.cpp ---
 Path: /Users/ivanalejnikov/CLionProjects/Game/main.cpp
-Size: 2183 bytes
+Size: 5512 bytes
 --- BEGIN ---
 #include <iostream>
-#include "./map/Field.h"
-#include "./entites/Player.h"
-#include "./logic/World.h"
+#include <vector>
+#include <memory>
+#include <iomanip>
+#include "map/Field.h"
+#include "entites/Player.h"
+#include "logic/World.h"
+#include "map/cells/Cell.h"
+#include "map/cells/Events/TrapEvent.h"
 
-void visualizeField(std::vector<std::vector<std::string>> frame, int width, int height) {
-    for (int i = 0; i < height; i++) {
+void visualizeField(const std::vector<std::vector<std::string>>& frame, int width, int height, int player_score) {
+    // Вывод счета игрока
+    std::cout << "Player Score: " << player_score << std::endl;
+
+    // Вывод верхней границы поля
+    std::cout << std::string(width * 10 + 1, '-') << std::endl;
+
+    // Для каждой строки поля
+    for (int i = 0; i < height; ++i) {
+        // Первая строка клетки (тип + координаты)
         std::cout << "|";
-        for (int j = 0; j < width; j++) {
-            int fix = 5 - frame[i][j].size();
-            for (int k = 0; k < fix; k++) std::cout << " ";
-            std::cout << frame[i][j] << "|";
+        for (int j = 0; j < width; ++j) {
+            std::string cell_content = frame[i][j].substr(0, frame[i][j].find(':')); // Тип и координаты
+            std::cout << std::setw(9) << std::left << cell_content << "|";
         }
         std::cout << std::endl;
+
+        // Вторая строка клетки (событие)
+        std::cout << "|";
+        for (int j = 0; j < width; ++j) {
+            std::string event = frame[i][j].substr(frame[i][j].find(':') + 1); // Событие
+            std::cout << std::setw(9) << std::left << event << "|";
+        }
+        std::cout << std::endl;
+
+        // Нижняя граница клетки
+        std::cout << std::string(width * 10 + 1, '_') << std::endl;
     }
 }
 
 void drawField(Field& field, World& world, std::shared_ptr<Player> player) {
-    std::vector<std::vector<std::string>> pre_frame;
-    int h, w;
-    field.GetSize(w, h);
-    pre_frame.resize(h);
-    for (int i = 0; i < h; i++) {
-        pre_frame[i].resize(w);
-        for (int j = 0; j < w; j++) {
-            std::string str = field.GetCellType(j, i);
-            pre_frame[i][j].push_back(str[0]);
+    int width, height;
+    field.GetSize(width, height);
+
+    // Инициализация пустого поля
+    std::vector<std::vector<std::string>> frame(height, std::vector<std::string>(width, ""));
+    for (int i = 0; i < height; ++i) {
+        for (int j = 0; j < width; ++j) {
+            // Получаем тип клетки и событие
+            std::string cell_type = field.GetCellType(j, i).substr(0, 1); // P, I, S
+            std::string event = "";
+            auto cell = field.GetCell(j, i);
+            if (cell->GetEvent()) {
+                if (dynamic_cast<TrapEvent*>(cell->GetEvent().get())) {
+                    event = "Trap";
+                } else {
+                    event = "Event";
+                }
+            } else {
+                event = "    ";
+            }
+            // Формируем строку: тип клетки + координаты + событие
+            frame[i][j] = cell_type + " (" + std::to_string(j) + "," + std::to_string(i) + "):" + event;
         }
     }
 
+    // Отображение врагов
     for (const auto& enemy_weak : world.Enemies().GetEnemies()) {
         if (auto enemy = enemy_weak.lock()) {
             int x, y;
             if (field.GetPosEntity(enemy, x, y)) {
-                pre_frame[y][x] += "E ";
-                pre_frame[y][x] += std::to_string(enemy->GetHP());
+                frame[y][x] = "E " + std::to_string(enemy->GetHP()) + "(" + std::to_string(x) + "," + std::to_string(y) + "):    ";
             }
         }
     }
 
+    // Отображение вражеских зданий
     for (const auto& building_weak : world.EnemiesBuildings().GetEnemiesBuildings()) {
         if (auto building = building_weak.lock()) {
             int x, y;
             if (field.GetPosEntity(building, x, y)) {
-                pre_frame[y][x] += "B ";
-                pre_frame[y][x] += std::to_string(building->GetHP());
+                frame[y][x] = "B " + std::to_string(building->GetHP()) + "(" + std::to_string(x) + "," + std::to_string(y) + "):    ";
             }
         }
     }
 
-    int x, y;
-    if (field.GetPosEntity(player, x, y)) {
-        pre_frame[y][x] += "P ";
-        pre_frame[y][x] += std::to_string(player->GetHP());
+    // Отображение башен
+    for (const auto& tower_weak : world.EnemiesTowers().GetEnemiesTowers()) {
+        if (auto tower = tower_weak.lock()) {
+            int x, y;
+            if (field.GetPosEntity(tower, x, y)) {
+                frame[y][x] = "T " + std::to_string(tower->GetHP()) + "(" + std::to_string(x) + "," + std::to_string(y) + "):    ";
+            }
+        }
     }
 
-    visualizeField(pre_frame, w, h);
+    // Отображение союзников
+    for (const auto& ally_weak : world.Allyes().GetAllyes()) {
+        if (auto ally = ally_weak.lock()) {
+            int x, y;
+            if (field.GetPosEntity(ally, x, y)) {
+                frame[y][x] = "A " + std::to_string(ally->GetHP()) + "(" + std::to_string(x) + "," + std::to_string(y) + "):    ";
+            }
+        }
+    }
+
+    // Отображение игрока
+    int x, y;
+    if (field.GetPosEntity(player, x, y)) {
+        frame[y][x] = "P" + std::to_string(player->GetHP()) + "(" + std::to_string(x) + "," + std::to_string(y) + "):    ";
+    }
+
+    // Вывод поля с передачей счета игрока
+    visualizeField(frame, width, height, player->GetScore());
 }
 
 int main() {
+    // Создание игрока
     std::shared_ptr<Player> player = std::make_shared<Player>(200, 100, 10);
-    Field field(10, 10, 5, 32);
+    Field field(10, 10, 5, 10); // Поле 3x3, 1 непроходимая, 1 замедляющая клетка
     World world;
-    world.Init(field, player, 1, 1);
-    drawField(field, world, player);
+
+    // Инициализация мира с врагами, зданиями, башнями и союзниками
+    world.Init(field, player, 0, 0, 20, 0); // 1 враг, 1 здание, 1 башня, 1 союзник
+
+    std::cout << "Game started! Commands: w/a/s/d (move), r (change mode), b (buy spell), e X Y (attack), q I X Y (cast spell)\n";
 
     while (!player->IsDead()) {
-        world.Update(field, player);
         drawField(field, world, player);
+        world.Update(field, player);
         world.DeleteDeadEntites(field);
     }
+
+    std::cout << "Game Over! Player is dead. Final Score: " << player->GetScore() << "\n";
     return 0;
 }
 --- END: main.cpp ---
@@ -168,7 +176,7 @@ private:
 
 --- FILE: entites/Player.cpp ---
 Path: /Users/ivanalejnikov/CLionProjects/Game/entites/Player.cpp
-Size: 926 bytes
+Size: 964 bytes
 --- BEGIN ---
 #include "Player.h"
 
@@ -179,10 +187,10 @@ Player::Player()
 
 Player::Player(int hp, int damage, int attack_radius)
 	: Entity(),
-	  score_(0),
-	  weapon_(std::make_shared<Weapon>(damage, attack_radius)),
-	hand_(Hand(5))
+	  score_(1000),
+	  weapon_(std::make_shared<Weapon>(damage, attack_radius))
 {
+	hand_ = std::make_shared<Hand>(5);
 	hp_ = hp > 0 ? hp : 100;
 }
 
@@ -223,7 +231,7 @@ void Player::addScore(int add) {
 		score_ += add;
 }
 
-Hand& Player::GetHand() {
+std::shared_ptr<Hand> Player::GetHand() {
 	return hand_;
 }
 
@@ -311,15 +319,22 @@ int Entity::GetHP() const {
 
 --- FILE: entites/Hand.h ---
 Path: /Users/ivanalejnikov/CLionProjects/Game/entites/Hand.h
-Size: 508 bytes
+Size: 731 bytes
 --- BEGIN ---
-// Hand.h
 #ifndef HAND_H
 #define HAND_H
 
 #include <memory>
 #include <vector>
+#include <random>
+
 #include "Spells/ISpell.h"
+#include "Spells/TrapSpell.h"
+#include "Spells/SummSpell.h"
+#include "Spells/EnhacementSpell.h"
+#include "Spells/DirDamageSpell.h"
+#include "Spells/AreaDmgSpell.h"
+
 
 class Hand {
 public:
@@ -328,27 +343,30 @@ public:
 
 	bool addSpell(std::shared_ptr<ISpell> spell);
 	std::shared_ptr<ISpell> getSpell(size_t index);
+	bool removeSpell(size_t index);
 
-	bool enableNextUpgrade();
-	bool isUpgradeEnabled() const;
+	void setUpgradeCoef(int);
+	int isUpgradeEnabled() const;
 
 	size_t size() const;
 	size_t capacity() const;
 	bool isFull() const;
 
+	void setRandomSpell();
+
 private:
 	std::vector<std::shared_ptr<ISpell>> spells_;
 	int limit_;
-	bool next_upgrade_enabled_;
+	int upgrade_coef_;
 };
 
-#endif //HAND_H
+#endif // HAND_H
 --- END: entites/Hand.h ---
 
 
 --- FILE: entites/Weapon.cpp ---
 Path: /Users/ivanalejnikov/CLionProjects/Game/entites/Weapon.cpp
-Size: 1122 bytes
+Size: 876 bytes
 --- BEGIN ---
 #include "Weapon.h"
 
@@ -361,13 +379,12 @@ Weapon::Weapon(int damage, int attack_radius, AttackMod mode)
 
 void Weapon::ChangeAttackMod() {
 	if (attack_mode_ == AttackMod::RangeCombat) {
-		// Переход на ближний бой - удваиваем урон, уменьшаем радиус
 		damage_ = initial_damage_ * 2;
 		attack_radius_ = initial_attack_radius_ / 2;
-		if (attack_radius_ < 1) attack_radius_ = 1;  // минимум 1
+		if (attack_radius_ < 1) attack_radius_ = 1;
 		attack_mode_ = AttackMod::CloseCombat;
 	} else {
-		// Переход на дальний бой - возвращаемся к начальным значениям!
+
 		damage_ = initial_damage_;
 		attack_radius_ = initial_attack_radius_;
 		attack_mode_ = AttackMod::RangeCombat;
@@ -390,7 +407,7 @@ AttackMod Weapon::GetAttackMode() const {
 
 --- FILE: entites/Player.h ---
 Path: /Users/ivanalejnikov/CLionProjects/Game/entites/Player.h
-Size: 571 bytes
+Size: 651 bytes
 --- BEGIN ---
 #ifndef PLAYER_H
 #define PLAYER_H
@@ -399,6 +416,9 @@ Size: 571 bytes
 #include "Weapon.h"
 #include <memory>
 #include "Hand.h"
+
+// Forward declaration для Hand
+class Hand;
 
 class Player : public Entity {
 public:
@@ -410,7 +430,7 @@ public:
 	int GetHealth() const;
 	int GetDamage() const;
 
-	Hand& GetHand();
+	std::shared_ptr<Hand> GetHand();
 
 	int GetScore();
 	void minusScore(int);
@@ -420,8 +440,7 @@ public:
 private:
 	int score_;
 	std::shared_ptr<Weapon> weapon_;
-
-	Hand hand_;
+	std::shared_ptr<Hand> hand_;
 };
 
 #endif // PLAYER_H
@@ -489,13 +508,16 @@ private:
 
 --- FILE: entites/Hand.cpp ---
 Path: /Users/ivanalejnikov/CLionProjects/Game/entites/Hand.cpp
-Size: 936 bytes
+Size: 1659 bytes
 --- BEGIN ---
 // Hand.cpp
 #include "Hand.h"
+#include <iostream>
 
 Hand::Hand(int limit)
-	: limit_(std::max(limit, 5)), next_upgrade_enabled_(false) {}
+	: limit_(std::max(limit, 5)), upgrade_coef_(0) {
+		setRandomSpell();
+	}
 
 Hand::Hand()
 	: Hand(5) {}
@@ -508,28 +530,37 @@ bool Hand::addSpell(std::shared_ptr<ISpell> spell) {
 	return true;
 }
 
+bool Hand::removeSpell(size_t index) {
+	if (index >= spells_.size())
+		return false;
+
+	spells_.erase(spells_.begin() + index);
+	return true;
+};
+
+
 std::shared_ptr<ISpell> Hand::getSpell(size_t index) {
 	if (index >= spells_.size())
 		return nullptr;
 
-	if (next_upgrade_enabled_) {
-		next_upgrade_enabled_ = false;
-		spells_[index]->upgrade();
+	if (upgrade_coef_ != 0) {
+
+		spells_[index]->upgrade(upgrade_coef_);
+		upgrade_coef_ = 0;
 	}
 
 	return spells_[index];
 }
 
-bool Hand::enableNextUpgrade() {
-	if (next_upgrade_enabled_)
-		return false;
+void Hand::setUpgradeCoef(int coef) {
+	if (upgrade_coef_ != 0)
+		return;
 
-	next_upgrade_enabled_ = true;
-	return true;
+	upgrade_coef_ = std::max(coef, 1);
 }
 
-bool Hand::isUpgradeEnabled() const {
-	return next_upgrade_enabled_;
+int Hand::isUpgradeEnabled() const {
+	return upgrade_coef_;
 }
 
 size_t Hand::size() const {
@@ -542,6 +573,39 @@ size_t Hand::capacity() const {
 
 bool Hand::isFull() const {
 	return spells_.size() >= static_cast<size_t>(limit_);
+}
+
+void Hand::setRandomSpell(){
+	if(isFull())
+		return;
+
+	std::random_device rd;
+	std::mt19937 gen(rd());
+	std::uniform_int_distribution<> numSpell(0, 4);
+
+	int num = numSpell(gen);
+
+	switch (num) {
+	case 0:
+		spells_.push_back(std::make_shared<DirDamageSpell>());
+		break;
+	case 1:
+		spells_.push_back(std::make_shared<AreaDmgSpell>());
+
+		break;
+	case 2:
+		spells_.push_back(std::make_shared<EnhacementSpell>());
+
+		break;
+	case 3:
+		spells_.push_back(std::make_shared<SummSpell>());
+
+		break;
+	case 4:
+		spells_.push_back(std::make_shared<TrapSpell>());
+
+		break;
+	}
 }
 --- END: entites/Hand.cpp ---
 
@@ -682,22 +746,22 @@ std::shared_ptr<Entity> Ally::clone() const {
 
 --- FILE: entites/EnemyTower.cpp ---
 Path: /Users/ivanalejnikov/CLionProjects/Game/entites/EnemyTower.cpp
-Size: 631 bytes
+Size: 636 bytes
 --- BEGIN ---
 // EnemyTower.cpp
 #include "EnemyTower.h"
 #include "Spells/DirDamageSpell.h"
 
-EnemyTower::EnemyTower()
+
+
+EnemyTower::EnemyTower(int radius, int damage)
 	: Entity() {
 	can_hit_on_walking_ = false;
 	can_move_on_cell_ = false;
-}
-
-EnemyTower::EnemyTower(int radius, int damage)
-	: EnemyTower() {
 	spell_ = std::make_shared<DirDamageSpell>(radius, damage);
 }
+
+EnemyTower::EnemyTower() : EnemyTower(2, 5) {};
 
 bool EnemyTower::IsFriendly() const {
 	return false;
@@ -720,29 +784,35 @@ std::shared_ptr<IDirDmgSpell> EnemyTower::canAttack() {
 
 --- FILE: logic/World.h ---
 Path: /Users/ivanalejnikov/CLionProjects/Game/logic/World.h
-Size: 628 bytes
+Size: 864 bytes
 --- BEGIN ---
 #ifndef WORLD_H
 #define WORLD_H
 
 #include "./managers/EnemyManager.h"
 #include "./managers/EnemyBuildingManager.h"
+#include "./managers/EnemyTowerManager.h"
+#include "./managers/AllyManager.h"
 #include "./managers/PlayerManager.h"
 #include "../map/Field.h"
 
 class World {
 public:
-	void Init(Field& field, std::shared_ptr<Player> player, int count_enemies, int count_buildings);
+	void Init(Field& field, std::shared_ptr<Player> player, int count_enemies, int count_buildings, int count_towers, int count_allies);
 	void Update(Field& field, std::shared_ptr<Player> player);
 	void DeleteDeadEntites(Field& field);
 	PlayerManager& PlayerMan();
 	EnemyManager& Enemies();
 	EnemyBuildingManager& EnemiesBuildings();
+	EnemyTowerManager& EnemiesTowers();
+	AllyManager& Allyes();
 
 private:
 	EnemyManager enemyManager_;
 	PlayerManager playerManager_;
 	EnemyBuildingManager buildingManager_;
+	EnemyTowerManager towerManager_;
+	AllyManager allyManager_;
 };
 
 #endif // WORLD_H
@@ -751,25 +821,32 @@ private:
 
 --- FILE: logic/World.cpp ---
 Path: /Users/ivanalejnikov/CLionProjects/Game/logic/World.cpp
-Size: 852 bytes
+Size: 1307 bytes
 --- BEGIN ---
 #include "World.h"
 
-void World::Init(Field& field, std::shared_ptr<Player> player, int count_enemies, int count_buildings) {
+void World::Init(Field& field, std::shared_ptr<Player> player, int count_enemies, int count_buildings, int count_towers, int count_allies) {
 	playerManager_.SpawnPlayer(field, player);
 	enemyManager_.SpawnEnemies(field, count_enemies);
 	buildingManager_.SpawnEnemiesBuildings(field, count_buildings);
+	towerManager_.SpawnEnemiesTowers(field, count_towers);
+	allyManager_.SpawnAllys(field, count_allies);
 }
 
 void World::Update(Field& field, std::shared_ptr<Player> player) {
 	playerManager_.ManagePlayerTurn(player, field, *this);
 	enemyManager_.EnemiesTurn(player, field);
 	buildingManager_.EnemiesBuildingTurn(field, *this);
+	towerManager_.EnemiesTowersTurn(field);
+	allyManager_.findAllyes(field);
+	allyManager_.AllyTurn(field);
 }
 
 void World::DeleteDeadEntites(Field& field) {
 	enemyManager_.DeleteDeadEnemies(field);
 	buildingManager_.DeleteDeadEnemiesBuildings(field);
+	towerManager_.DeleteDeadEnemiesTowers(field);
+	allyManager_.DeleteDeadAllys(field);
 }
 
 PlayerManager& World::PlayerMan() {
@@ -782,6 +859,14 @@ EnemyManager& World::Enemies() {
 
 EnemyBuildingManager& World::EnemiesBuildings() {
 	return buildingManager_;
+}
+
+EnemyTowerManager& World::EnemiesTowers() {
+	return towerManager_;
+}
+
+AllyManager& World::Allyes() {
+	return allyManager_;
 }
 --- END: logic/World.cpp ---
 
@@ -1096,7 +1181,7 @@ std::shared_ptr<Cell>  Field::GetCell (int x, int y) {
 
 --- FILE: map/cells/Cell.h ---
 Path: /Users/ivanalejnikov/CLionProjects/Game/map/cells/Cell.h
-Size: 1019 bytes
+Size: 1055 bytes
 --- BEGIN ---
 #ifndef CELL_H
 #define CELL_H
@@ -1140,7 +1225,8 @@ public:
 		return c;
 	}
 
-	 bool SetEvent(std::shared_ptr<IEvent>);
+	bool SetEvent(std::shared_ptr<IEvent>);
+	std::shared_ptr<IEvent> GetEvent();
 
 	std::shared_ptr<Entity> GetEntity() const { return entity_; }
 
@@ -1193,7 +1279,7 @@ private:
 
 --- FILE: map/cells/Cell.cpp ---
 Path: /Users/ivanalejnikov/CLionProjects/Game/map/cells/Cell.cpp
-Size: 1271 bytes
+Size: 1334 bytes
 --- BEGIN ---
 #include "Cell.h"
 
@@ -1258,6 +1344,11 @@ bool Cell::SetEvent(std::shared_ptr<IEvent> event) {
 	}
 	return false;
 
+}
+
+
+std::shared_ptr<IEvent> Cell::GetEvent() {
+	return event_;
 }
 
 
@@ -1427,9 +1518,8 @@ private:
 
 --- FILE: logic/managers/EnemyTowerManager.cpp ---
 Path: /Users/ivanalejnikov/CLionProjects/Game/logic/managers/EnemyTowerManager.cpp
-Size: 2968 bytes
+Size: 2958 bytes
 --- BEGIN ---
-// EnemyTowerManager.cpp
 #include "EnemyTowerManager.h"
 #include "../../entites/Spells/ISpell.h"
 #include <random>
@@ -1452,7 +1542,7 @@ bool EnemyTowerManager::SpawnEnemiesTowers(Field& field, int count_enemy_towers)
     for (int i = 0; i < count_enemy_towers; i++) {
         int x = x_dist(gen);
         int y = y_dist(gen);
-        auto enemy_tower = std::make_shared<EnemyTower>();
+        auto enemy_tower = std::make_shared<EnemyTower>(2, 5);
         enemies_towers_.push_back(enemy_tower);
         while ((x == 0 && y == 0) || !field.SetEntity(enemy_tower, x, y)) {
             x = x_dist(gen);
@@ -1462,7 +1552,7 @@ bool EnemyTowerManager::SpawnEnemiesTowers(Field& field, int count_enemy_towers)
     return true;
 }
 
-// EnemyTowerManager.cpp
+
 bool EnemyTowerManager::EnemiesTowersTurn(Field& field) {
 	bool flag = true;
 
@@ -1488,6 +1578,7 @@ bool EnemyTowerManager::EnemiesTowersTurn(Field& field) {
 			context.field = &field;
 
 			spell->use(context);
+			std::cout << "52" << std::endl;
 		}
 	}
 	return flag;
@@ -1543,7 +1634,7 @@ std::shared_ptr<Entity> EnemyTowerManager::findTarget(int x, int y, Field& field
 
 --- FILE: logic/managers/AllyManager.h ---
 Path: /Users/ivanalejnikov/CLionProjects/Game/logic/managers/AllyManager.h
-Size: 717 bytes
+Size: 745 bytes
 --- BEGIN ---
 		//
 // Created by Иван Алейников on 21.10.2025.
@@ -1569,6 +1660,8 @@ public:
 	const std::vector<std::weak_ptr<Ally>>& GetAllyes() const;
 
 	std::shared_ptr<Entity> findTarget(int, int,  Field&);
+
+	void findAllyes(Field& );
 
 private:
 	std::vector<std::weak_ptr<Ally>> allyes_;
@@ -1815,13 +1908,19 @@ const std::vector<std::weak_ptr<EnemyBuilding>>& EnemyBuildingManager::GetEnemie
 
 --- FILE: logic/managers/PlayerManager.h ---
 Path: /Users/ivanalejnikov/CLionProjects/Game/logic/managers/PlayerManager.h
-Size: 1020 bytes
+Size: 1207 bytes
 --- BEGIN ---
 #ifndef PLAYERMANAGER_H
 #define PLAYERMANAGER_H
 
 #include "../../entites/Player.h"
 #include "../../entites/Spells/DirDamageSpell.h"
+#include "../../entites/Spells/TrapSpell.h"
+#include "../../entites/Spells/AreaDmgSpell.h"
+#include "../../entites/Spells/EnhacementSpell.h"
+#include "../../entites/Spells/SummSpell.h"
+
+
 #include "../../map/Field.h"
 
 class World;
@@ -1850,9 +1949,8 @@ private:
 
 --- FILE: logic/managers/PlayerManager.cpp ---
 Path: /Users/ivanalejnikov/CLionProjects/Game/logic/managers/PlayerManager.cpp
-Size: 7190 bytes
+Size: 7626 bytes
 --- BEGIN ---
-// PlayerManager.cpp
 #include "PlayerManager.h"
 #include "../World.h"
 #include <iostream>
@@ -1905,17 +2003,18 @@ bool PlayerManager::BuySpell(std::shared_ptr<Player> player) {
 	if (!player || player->NotMoveNext())
 		return false;
 
-	auto& hand = player->GetHand();
-	if (hand.isFull()) {
+	auto hand = player->GetHand();
+	if (hand->isFull()) {
 		std::cout << "Your hand is full!\n";
 		return false;
 	}
 
-	// Список заклинаний с ценами
 	std::map<int, std::pair<std::shared_ptr<ISpell>, int>> shop = {
 		{1, {std::make_shared<DirDamageSpell>(2, 10), 10}},
-		{2, {std::make_shared<DirDamageSpell>(3, 15), 15}},
-		{3, {std::make_shared<DirDamageSpell>(4, 20), 20}}
+		{2, {std::make_shared<TrapSpell>(50), 50}},
+		{3, {std::make_shared<AreaDmgSpell>(4, 20), 40}},
+		{4, {std::make_shared<EnhacementSpell>(2), 100}},
+		{5, {std::make_shared<SummSpell>(1), 2}}
 	};
 
 	std::cout << "Available spells:\n";
@@ -1934,9 +2033,12 @@ bool PlayerManager::BuySpell(std::shared_ptr<Player> player) {
 		}
 	}
 
-	int choice;
+	std::string line;
 	std::cout << "Enter spell number to buy: ";
-	std::cin >> choice;
+	std::getline(std::cin, line);
+
+	int choice;
+	std::stringstream(line) >> choice;
 
 	auto it = shop.find(choice);
 	if (it == shop.end() || player->GetScore() < it->second.second) {
@@ -1945,11 +2047,12 @@ bool PlayerManager::BuySpell(std::shared_ptr<Player> player) {
 	}
 
 	player->minusScore(it->second.second);
-	hand.addSpell(it->second.first);
+	hand->addSpell(it->second.first);
 
 	std::cout << "Spell purchased!\n";
 	return true;
 }
+
 
 
 bool PlayerManager::CastSpell(std::shared_ptr<Player> player, size_t spell_index,
@@ -1957,7 +2060,7 @@ bool PlayerManager::CastSpell(std::shared_ptr<Player> player, size_t spell_index
 	if (!player || player->NotMoveNext())
 		return false;
 
-	auto spell = player->GetHand().getSpell(spell_index);
+	auto spell = player->GetHand()->getSpell(spell_index);
 	if (!spell) return false;
 
 	SpellContext context;
@@ -1965,10 +2068,10 @@ bool PlayerManager::CastSpell(std::shared_ptr<Player> player, size_t spell_index
 	context.field = &field;
 	context.cell = field.GetCell(x, y);
 	context.target = context.cell ? context.cell->GetEntity() : nullptr;
+	context.base_x = x, context.base_y = y;
+	context.hand = player->GetHand();
 
 	bool result = spell->use(context);
-
-
 
 	return result;
 }
@@ -2021,11 +2124,11 @@ void PlayerManager::ManagePlayerTurn(std::shared_ptr<Player> player, Field& fiel
         }
 
     	case 'q': {
-        	Hand& hand = player->GetHand();
+        	auto hand = player->GetHand();
 
         	std::cout << "Your spells:\n";
-        	for (size_t i = 0; i < hand.size(); ++i) {
-        		auto spell = hand.getSpell(i);
+        	for (size_t i = 0; i < hand->size(); ++i) {
+        		auto spell = hand->getSpell(i);
         		std::cout << i << ": ";
         		switch (spell->getSpellType()) {
         			case SpellType::DirDmg: std::cout << "DirDamage"; break;
@@ -2038,25 +2141,29 @@ void PlayerManager::ManagePlayerTurn(std::shared_ptr<Player> player, Field& fiel
         		std::cout << "\n";
         	}
 
+        	std::string line;
         	int spell_idx;
         	std::cout << "Enter spell index: ";
-        	std::cin >> spell_idx;
-        	if (spell_idx < 0 || spell_idx >= static_cast<int>(hand.size())) {
+        	std::getline(std::cin, line);
+        	std::stringstream(line) >> spell_idx;
+
+        	if (spell_idx < 0 || spell_idx >= static_cast<int>(hand->size())) {
         		std::cout << "Invalid index!\n";
         		break;
         	}
 
         	int x, y;
         	std::cout << "Enter target X Y: ";
-        	std::cin >> x >> y;
-
-        	auto spell = hand.getSpell(spell_idx);
+        	std::getline(std::cin, line);
+        	std::stringstream(line) >> x >> y;
 
         	bool result = CastSpell(player, spell_idx, x, y, field, world);
         	std::cout << (result ? "Spell cast!" : "Spell failed!") << std::endl;
 
+        	hand->removeSpell(spell_idx);
         	break;
     	}
+
 
         default:
             std::cout << "Unknown command: " << command << std::endl;
@@ -2079,7 +2186,6 @@ std::shared_ptr<Entity> PlayerManager::findTargetAt(int x, int y, Field& field, 
         }
     }
 
-    // Ищем среди вражеских строений
     for (const auto& building_weak : world.EnemiesBuildings().GetEnemiesBuildings()) {
         if (auto building = building_weak.lock()) {
             if (field.GetPosEntity(building, x_e, y_e) && x_e == x && y_e == y) {
@@ -2087,6 +2193,14 @@ std::shared_ptr<Entity> PlayerManager::findTargetAt(int x, int y, Field& field, 
             }
         }
     }
+
+	for (const auto& tower_weak : world.EnemiesTowers().GetEnemiesTowers()) {
+		if (auto tower = tower_weak.lock()) {
+			if (field.GetPosEntity(tower, x_e, y_e) && x_e == x && y_e == y) {
+				return tower;
+			}
+		}
+	}
 
     return nullptr;
 }
@@ -2168,7 +2282,7 @@ private:
 
 --- FILE: logic/managers/AllyManager.cpp ---
 Path: /Users/ivanalejnikov/CLionProjects/Game/logic/managers/AllyManager.cpp
-Size: 4180 bytes
+Size: 4746 bytes
 --- BEGIN ---
 #include "AllyManager.h"
 
@@ -2325,14 +2439,163 @@ std::shared_ptr<Entity> AllyManager::findTarget(int x, int y, Field& field) {
 	return nearest;
 }
 
+
+void AllyManager::findAllyes(Field& field) {
+	allyes_.clear(); // Очищаем старый список союзников
+
+	int width, height;
+	field.GetSize(width, height);
+
+
+	for (int y = 0; y < height; ++y) {
+		for (int x = 0; x < width; ++x) {
+			auto entity = field.GetEntity(x, y); // Получаем сущность в клетке
+			if (entity && dynamic_cast<Ally*>(entity.get())) { // Проверяем, является ли сущность Ally
+				allyes_.push_back(std::weak_ptr<Ally>(std::dynamic_pointer_cast<Ally>(entity)));
+			}
+		}
+	}
+}
 --- END: logic/managers/AllyManager.cpp ---
+
+
+--- FILE: entites/Spells/TrapSpell.cpp ---
+Path: /Users/ivanalejnikov/CLionProjects/Game/entites/Spells/TrapSpell.cpp
+Size: 674 bytes
+--- BEGIN ---
+#include "TrapSpell.h"
+#include "../../map/Field.h"
+
+TrapSpell::TrapSpell() : TrapSpell(10) {};
+
+TrapSpell::TrapSpell(int damage) : damage_(std::max(1, damage)) {};
+
+
+void TrapSpell::upgrade(int coeficient){
+	damage_ *= coeficient;
+}
+
+
+bool TrapSpell::use(const SpellContext& context) {
+	if (!context.cell || !context.field) {
+		return false;
+	}
+
+	placeTrap(context.cell);
+
+	return true;
+}
+
+SpellType TrapSpell::getSpellType() const {
+	return SpellType::Trap;
+}
+
+int TrapSpell::getTrapDamage() const{
+	return damage_;
+}
+
+void TrapSpell::placeTrap(std::shared_ptr<Cell> cell){
+	std::shared_ptr<TrapEvent> trap = std::make_shared<TrapEvent>(damage_);
+
+	cell->SetEvent(trap);
+}
+--- END: entites/Spells/TrapSpell.cpp ---
+
+
+--- FILE: entites/Spells/EnhacementSpell.cpp ---
+Path: /Users/ivanalejnikov/CLionProjects/Game/entites/Spells/EnhacementSpell.cpp
+Size: 680 bytes
+--- BEGIN ---
+#include "EnhacementSpell.h"
+#include "./Hand.h"
+
+EnhacementSpell::EnhacementSpell() : EnhacementSpell(2) {};
+EnhacementSpell::EnhacementSpell(int coef) : enhancement_(std::max(2, coef)) {};
+
+SpellType EnhacementSpell::getSpellType() const  {
+	return SpellType::Enhancement;
+}
+
+bool EnhacementSpell::use(const SpellContext& context){
+	if (context.hand) {
+		applyEnhancement(context.hand);
+		return true;
+	}
+
+	return false;
+}
+
+
+void EnhacementSpell::applyEnhancement(std::shared_ptr<Hand> hand) {
+	hand->setUpgradeCoef(enhancement_);
+}
+
+void EnhacementSpell::upgrade(int coeficient) {
+	enhancement_ += coeficient;
+}
+
+int EnhacementSpell::getEnhancement()  {
+	return enhancement_;
+}
+--- END: entites/Spells/EnhacementSpell.cpp ---
+
+
+--- FILE: entites/Spells/AreaDmgSpell.cpp ---
+Path: /Users/ivanalejnikov/CLionProjects/Game/entites/Spells/AreaDmgSpell.cpp
+Size: 865 bytes
+--- BEGIN ---
+#include "AreaDmgSpell.h"
+#include "../../map/Field.h"
+
+
+AreaDmgSpell::AreaDmgSpell() : AreaDmgSpell(2, 4) {};
+AreaDmgSpell::AreaDmgSpell(int area, int damage) :
+				area_(std::max(2, area)),
+				damage_(std::max(2, damage)) {};
+
+
+
+void AreaDmgSpell::upgrade(int coeficient){
+	area_ *= coeficient;
+}
+bool AreaDmgSpell::use(const SpellContext& context) {
+	if (!context.field) {
+		return false;
+	}
+
+	for (int i = context.base_x - area_; i <= context.base_x + area_; i++) {
+		for (int j = context.base_y - area_; j <= context.base_y + area_; j++) {
+			auto entity = context.field->GetEntity(i, j);
+
+			if (entity) {
+				entity->CauseDamage(damage_);
+			}
+		}
+	}
+
+	return true;
+}
+
+int AreaDmgSpell::getArea() const {
+	return area_;
+}
+
+int AreaDmgSpell::getDamage() const {
+	return damage_;
+}
+
+SpellType AreaDmgSpell::getSpellType() const {
+	return SpellType::AreaDmg;
+}
+--- END: entites/Spells/AreaDmgSpell.cpp ---
 
 
 --- FILE: entites/Spells/DirDamageSpell.cpp ---
 Path: /Users/ivanalejnikov/CLionProjects/Game/entites/Spells/DirDamageSpell.cpp
-Size: 900 bytes
+Size: 1000 bytes
 --- BEGIN ---
 #include "DirDamageSpell.h"
+#include "../../map/Field.h" // Добавляем включение Field.h
 #include <algorithm>
 #include <cmath>
 
@@ -2348,8 +2611,6 @@ int DirDamageSpell::getDamage() const {
 int DirDamageSpell::getRange() const {
 	return range_;
 }
-
-
 
 bool DirDamageSpell::use(const SpellContext& context) {
 	if (!context.caster || !context.target || !context.field) {
@@ -2372,13 +2633,105 @@ bool DirDamageSpell::use(const SpellContext& context) {
 
 	context.target->CauseDamage(damage_);
 
+
 	return true;
 }
 
-void DirDamageSpell::upgrade() {
-	range_ *= 2;
+void DirDamageSpell::upgrade(int coeficient) {
+	range_ *= coeficient;
 }
 --- END: entites/Spells/DirDamageSpell.cpp ---
+
+
+--- FILE: entites/Spells/SummSpell.cpp ---
+Path: /Users/ivanalejnikov/CLionProjects/Game/entites/Spells/SummSpell.cpp
+Size: 1070 bytes
+--- BEGIN ---
+#include "SummSpell.h"
+#include "../../map/Field.h"
+#include "../Ally.h"
+#include <memory>
+
+SpellType SummSpell::getSpellType() const {
+	return SpellType::Summon;
+}
+
+SummSpell::SummSpell() : SummSpell(1) {}
+
+SummSpell::SummSpell(int count) {
+	count_allies_ = (count > 0 && count < 3) ? count : 1;
+}
+
+int SummSpell::getAllyCount() const {
+	return count_allies_;
+}
+
+void SummSpell::upgrade(int coeficient) {
+	count_allies_+= coeficient;
+}
+
+bool SummSpell::use(const SpellContext& context) {
+	if (!context.caster || !context.field || !context.hand) {
+		return false;
+	}
+
+	int x_c, y_c;
+	context.field->GetPosEntity(context.caster, x_c, y_c);
+
+	int dx[4] = {-1, 1, 0, 0};
+	int dy[4] = {0, 0, -1, 1};
+
+	bool spawned = false;
+	for (int j = 0; j < count_allies_; ++j) {
+		for (int i = 0; i < 4; ++i) {
+			int x = x_c + dx[i];
+			int y = y_c + dy[i];
+
+			auto ally = std::make_shared<Ally>();
+			if (context.field->SetEntity(ally, x, y)) {
+				spawned = true;
+				break; // Прерываем внутренний цикл после спавна
+			}
+		}
+	}
+
+	return spawned;
+}
+--- END: entites/Spells/SummSpell.cpp ---
+
+
+--- FILE: entites/Spells/AreaDmgSpell.h ---
+Path: /Users/ivanalejnikov/CLionProjects/Game/entites/Spells/AreaDmgSpell.h
+Size: 434 bytes
+--- BEGIN ---
+#ifndef AREADMGSPELL_H
+#define AREADMGSPELL_H
+
+#include "IAreaDmgSpell.h"
+
+
+class AreaDmgSpell : public IAreaDmgSpell {
+public:
+	AreaDmgSpell();
+	AreaDmgSpell(int area, int damage);
+
+	void upgrade(int) override;
+	bool use(const SpellContext& context) override;
+
+	int getArea() const override;
+	int getDamage() const override;
+
+	SpellType getSpellType() const override;
+
+private:
+	int damage_;
+	int area_;
+};
+
+
+#endif //AREADMGSPELL_H
+
+--- END: entites/Spells/AreaDmgSpell.h ---
 
 
 --- FILE: entites/Spells/IDirDmgSpell.h ---
@@ -2406,7 +2759,7 @@ public:
 
 --- FILE: entites/Spells/ISummSpell.h ---
 Path: /Users/ivanalejnikov/CLionProjects/Game/entites/Spells/ISummSpell.h
-Size: 316 bytes
+Size: 215 bytes
 --- BEGIN ---
 #ifndef ISUMMONSPELL_H
 #define ISUMMONSPELL_H
@@ -2416,20 +2769,47 @@ Size: 316 bytes
 class ISummonSpell : public ISpell {
 public:
 	virtual ~ISummonSpell() = default;
-
-	SpellType getSpellType() const override { return SpellType::Summon; }
-
 	virtual int getAllyCount() const = 0;
-	virtual void summon() = 0;
 };
 
 #endif //ISUMMONSPELL_H
 --- END: entites/Spells/ISummSpell.h ---
 
 
+--- FILE: entites/Spells/EnhacementSpell.h ---
+Path: /Users/ivanalejnikov/CLionProjects/Game/entites/Spells/EnhacementSpell.h
+Size: 457 bytes
+--- BEGIN ---
+#ifndef ENHACEMENTSPELL_H
+#define ENHACEMENTSPELL_H
+
+#include "IEnhacementSpell.h"
+
+
+class EnhacementSpell : public IEnhancementSpell {
+public:
+	EnhacementSpell();
+	EnhacementSpell(int);
+
+	bool use(const SpellContext& context) override;
+	SpellType getSpellType() const override;
+	void applyEnhancement(std::shared_ptr<Hand>) override;
+	void upgrade(int) override;
+	int getEnhancement() override;
+
+private:
+	int enhancement_;
+};
+
+
+#endif //ENHACEMENTSPELL_H
+
+--- END: entites/Spells/EnhacementSpell.h ---
+
+
 --- FILE: entites/Spells/ITrapSpell.h ---
 Path: /Users/ivanalejnikov/CLionProjects/Game/entites/Spells/ITrapSpell.h
-Size: 399 bytes
+Size: 300 bytes
 --- BEGIN ---
 #ifndef ITRAPSPELL_H
 #define ITRAPSPELL_H
@@ -2441,11 +2821,10 @@ class ITrapSpell : public ISpell {
 public:
 	virtual ~ITrapSpell() = default;
 
-	SpellType getSpellType() const override { return SpellType::Trap; }
+
 
 	virtual int getTrapDamage() const = 0;
 	virtual void placeTrap(std::shared_ptr<Cell> cell) = 0;
-	virtual void onTrigger() = 0;
 };
 
 #endif //ITRAPSPELL_H
@@ -2454,7 +2833,7 @@ public:
 
 --- FILE: entites/Spells/DirDamageSpell.h ---
 Path: /Users/ivanalejnikov/CLionProjects/Game/entites/Spells/DirDamageSpell.h
-Size: 398 bytes
+Size: 401 bytes
 --- BEGIN ---
 #ifndef DIRDAMAGESPELL_H
 #define DIRDAMAGESPELL_H
@@ -2466,7 +2845,7 @@ public:
 	DirDamageSpell();
 	DirDamageSpell(int range, int damage);
 
-	void upgrade() override;
+	void upgrade(int) override;
 	bool use(const SpellContext& context) override;
 
 	int getDamage() const override;
@@ -2483,50 +2862,52 @@ private:
 
 --- FILE: entites/Spells/ISpell.h ---
 Path: /Users/ivanalejnikov/CLionProjects/Game/entites/Spells/ISpell.h
-Size: 640 bytes
+Size: 834 bytes
 --- BEGIN ---
 #ifndef ISPELL_H
 #define ISPELL_H
 
-#include "../../map/Field.h"
+#include <memory>
 #include "../Entity.h"
 
 // Forward declaration для избежания циклических зависимостей
-class Hand;
+class Field; // Предварительное объявление вместо #include "../../map/Field.h"
 class Cell;
+class Hand;
 
 enum class SpellType {
-	None,
-	AreaDmg,
-	DirDmg,
-	Enhancement,
-	Summon,
-	Trap,
+    None,
+    AreaDmg,
+    DirDmg,
+    Enhancement,
+    Summon,
+    Trap,
 };
 
 struct SpellContext {
-	std::shared_ptr<Entity> caster;
-	std::shared_ptr<Entity> target;
-	Field* field = nullptr;
-	std::shared_ptr<Cell> cell;
+    std::shared_ptr<Entity> caster;
+    std::shared_ptr<Entity> target;
+    Field* field = nullptr;
+    std::shared_ptr<Cell> cell;
+	int base_x, base_y;
+	std::shared_ptr<Hand> hand;
 };
 
 class ISpell {
 public:
-	virtual ~ISpell() = default;
-	virtual SpellType getSpellType() const = 0;
-	virtual void upgrade() = 0;
-	virtual bool use(const SpellContext& context) = 0;
+    virtual ~ISpell() = default;
+    virtual SpellType getSpellType() const = 0;
+    virtual void upgrade(int) = 0;
+    virtual bool use(const SpellContext& context) = 0;
 };
 
-#endif //ISPELL_H
-
+#endif // ISPELL_H
 --- END: entites/Spells/ISpell.h ---
 
 
 --- FILE: entites/Spells/IAreaDmgSpell.h ---
 Path: /Users/ivanalejnikov/CLionProjects/Game/entites/Spells/IAreaDmgSpell.h
-Size: 325 bytes
+Size: 254 bytes
 --- BEGIN ---
 #ifndef IAREADMGSPELL_H
 #define IAREADMGSPELL_H
@@ -2537,7 +2918,7 @@ class IAreaDmgSpell : public ISpell {
 public:
 	virtual ~IAreaDmgSpell() = default;
 
-	SpellType getSpellType() const override { return SpellType::AreaDmg; }
+
 
 	virtual int getArea() const = 0;
 	virtual int getDamage() const = 0;
@@ -2547,9 +2928,71 @@ public:
 --- END: entites/Spells/IAreaDmgSpell.h ---
 
 
+--- FILE: entites/Spells/SummSpell.h ---
+Path: /Users/ivanalejnikov/CLionProjects/Game/entites/Spells/SummSpell.h
+Size: 357 bytes
+--- BEGIN ---
+#ifndef SUMMSPELL_H
+#define SUMMSPELL_H
+
+#include "ISummSpell.h"
+
+class SummSpell : public ISummonSpell {
+public:
+	SummSpell();
+	SummSpell(int);
+
+	int getAllyCount() const override;
+	void upgrade(int) override;
+	bool use(const SpellContext& context) override;
+	SpellType getSpellType() const override;
+
+private:
+	int count_allies_;
+};
+
+#endif // SUMMSPELL_H
+--- END: entites/Spells/SummSpell.h ---
+
+
+--- FILE: entites/Spells/TrapSpell.h ---
+Path: /Users/ivanalejnikov/CLionProjects/Game/entites/Spells/TrapSpell.h
+Size: 445 bytes
+--- BEGIN ---
+#ifndef TRAPSPELL_H
+#define TRAPSPELL_H
+
+#include "ITrapSpell.h"
+#include "../../map/cells/Events/TrapEvent.h"
+
+
+class TrapSpell : public ITrapSpell {
+public:
+	TrapSpell();
+	TrapSpell(int damage);
+
+	void upgrade(int) override;
+	bool use(const SpellContext& context) override;
+
+	SpellType getSpellType() const override;
+
+	int getTrapDamage() const ;
+	void placeTrap(std::shared_ptr<Cell> cell);
+
+private:
+	int damage_;
+};
+
+
+
+#endif //TRAPSPELL_H
+
+--- END: entites/Spells/TrapSpell.h ---
+
+
 --- FILE: entites/Spells/IEnhacementSpell.h ---
 Path: /Users/ivanalejnikov/CLionProjects/Game/entites/Spells/IEnhacementSpell.h
-Size: 332 bytes
+Size: 298 bytes
 --- BEGIN ---
 #ifndef IENHANCEMENTSPELL_H
 #define IENHANCEMENTSPELL_H
@@ -2560,9 +3003,8 @@ class IEnhancementSpell : public ISpell {
 public:
 	virtual ~IEnhancementSpell() = default;
 
-	SpellType getSpellType() const override { return SpellType::Enhancement; }
-
-	virtual void applyEnhancement(ISpell& spell) = 0;
+	virtual void applyEnhancement(std::shared_ptr<Hand>) = 0;
+	virtual int getEnhancement() = 0;
 };
 
 #endif //IENHANCEMENTSPELL_H
@@ -2571,38 +3013,4 @@ public:
 --- END: entites/Spells/IEnhacementSpell.h ---
 
 
--
-cmake_minimum_required(VERSION 3.30)
-project(Game)
-
-set(CMAKE_CXX_STANDARD 20)
-
-# Список всех исходных файлов
-set(SOURCE_FILES
-        main.cpp
-        entites/Player.cpp
-        entites/Enemy.cpp
-        entites/EnemyBuilding.cpp
-        entites/Entity.cpp
-        entites/Weapon.cpp
-        logic/managers/EnemyBuildingManager.cpp
-        logic/managers/EnemyManager.cpp
-        logic/managers/PlayerManager.cpp
-        logic/World.cpp
-        map/Field.cpp
-        map/cells/Cell.cpp
-        map/cells/ImpassableCell.cpp
-        map/cells/SlowingCell.cpp
-)
-
-# Создание исполняемого файла (пробел после Game!)
-add_executable(Game ${SOURCE_FILES})
-
-# Указание директорий с заголовочными файлами
-target_include_directories(Game PRIVATE
-        ${CMAKE_SOURCE_DIR}/entites
-        ${CMAKE_SOURCE_DIR}/logic
-        ${CMAKE_SOURCE_DIR}/logic/managers
-        ${CMAKE_SOURCE_DIR}/map
-        ${CMAKE_SOURCE_DIR}/map/cells
-)
+--- FIL

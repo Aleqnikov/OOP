@@ -1,8 +1,11 @@
 // Hand.cpp
 #include "Hand.h"
+#include <iostream>
 
 Hand::Hand(int limit)
-	: limit_(std::max(limit, 5)), next_upgrade_enabled_(false) {}
+	: limit_(std::max(limit, 5)), upgrade_coef_(0) {
+		setRandomSpell();
+	}
 
 Hand::Hand()
 	: Hand(5) {}
@@ -28,24 +31,24 @@ std::shared_ptr<ISpell> Hand::getSpell(size_t index) {
 	if (index >= spells_.size())
 		return nullptr;
 
-	if (next_upgrade_enabled_) {
-		next_upgrade_enabled_ = false;
-		spells_[index]->upgrade();
+	if (upgrade_coef_ != 0) {
+
+		spells_[index]->upgrade(upgrade_coef_);
+		upgrade_coef_ = 0;
 	}
 
 	return spells_[index];
 }
 
-bool Hand::enableNextUpgrade() {
-	if (next_upgrade_enabled_)
-		return false;
+void Hand::setUpgradeCoef(int coef) {
+	if (upgrade_coef_ != 0)
+		return;
 
-	next_upgrade_enabled_ = true;
-	return true;
+	upgrade_coef_ = std::max(coef, 1);
 }
 
-bool Hand::isUpgradeEnabled() const {
-	return next_upgrade_enabled_;
+int Hand::isUpgradeEnabled() const {
+	return upgrade_coef_;
 }
 
 size_t Hand::size() const {
@@ -58,4 +61,37 @@ size_t Hand::capacity() const {
 
 bool Hand::isFull() const {
 	return spells_.size() >= static_cast<size_t>(limit_);
+}
+
+void Hand::setRandomSpell(){
+	if(isFull())
+		return;
+
+	std::random_device rd;
+	std::mt19937 gen(rd());
+	std::uniform_int_distribution<> numSpell(0, 4);
+
+	int num = numSpell(gen);
+
+	switch (num) {
+	case 0:
+		spells_.push_back(std::make_shared<DirDamageSpell>());
+		break;
+	case 1:
+		spells_.push_back(std::make_shared<AreaDmgSpell>());
+
+		break;
+	case 2:
+		spells_.push_back(std::make_shared<EnhacementSpell>());
+
+		break;
+	case 3:
+		spells_.push_back(std::make_shared<SummSpell>());
+
+		break;
+	case 4:
+		spells_.push_back(std::make_shared<TrapSpell>());
+
+		break;
+	}
 }

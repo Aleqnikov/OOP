@@ -8,6 +8,7 @@ public:
 	virtual ~IEnhancementSpell() = default;
 
 	virtual void applyEnhancement(std::shared_ptr<Hand>) = 0;
+	virtual int getEnhancement() = 0;
 };
 
 #endif //IENHANCEMENTSPELL_H

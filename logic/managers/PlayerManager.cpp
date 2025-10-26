@@ -56,14 +56,14 @@ bool PlayerManager::BuySpell(std::shared_ptr<Player> player) {
 		return false;
 	}
 
-	// Список заклинаний с ценами
 	std::map<int, std::pair<std::shared_ptr<ISpell>, int>> shop = {
 		{1, {std::make_shared<DirDamageSpell>(2, 10), 10}},
 		{2, {std::make_shared<TrapSpell>(50), 50}},
 		{3, {std::make_shared<AreaDmgSpell>(4, 20), 40}},
-		{4, {std::make_shared<EnhacementSpell>(), 100}}, // Исправляем
+		{4, {std::make_shared<EnhacementSpell>(2), 100}},
 		{5, {std::make_shared<SummSpell>(1), 2}}
 	};
+
 	std::cout << "Available spells:\n";
 	for (auto& [key, val] : shop) {
 		if (player->GetScore() >= val.second) {
@@ -80,9 +80,12 @@ bool PlayerManager::BuySpell(std::shared_ptr<Player> player) {
 		}
 	}
 
-	int choice;
+	std::string line;
 	std::cout << "Enter spell number to buy: ";
-	std::cin >> choice;
+	std::getline(std::cin, line);
+
+	int choice;
+	std::stringstream(line) >> choice;
 
 	auto it = shop.find(choice);
 	if (it == shop.end() || player->GetScore() < it->second.second) {
@@ -96,6 +99,7 @@ bool PlayerManager::BuySpell(std::shared_ptr<Player> player) {
 	std::cout << "Spell purchased!\n";
 	return true;
 }
+
 
 
 bool PlayerManager::CastSpell(std::shared_ptr<Player> player, size_t spell_index,
@@ -115,9 +119,6 @@ bool PlayerManager::CastSpell(std::shared_ptr<Player> player, size_t spell_index
 	context.hand = player->GetHand();
 
 	bool result = spell->use(context);
-
-
-
 
 	return result;
 }
@@ -187,9 +188,12 @@ void PlayerManager::ManagePlayerTurn(std::shared_ptr<Player> player, Field& fiel
         		std::cout << "\n";
         	}
 
+        	std::string line;
         	int spell_idx;
         	std::cout << "Enter spell index: ";
-        	std::cin >> spell_idx;
+        	std::getline(std::cin, line);
+        	std::stringstream(line) >> spell_idx;
+
         	if (spell_idx < 0 || spell_idx >= static_cast<int>(hand->size())) {
         		std::cout << "Invalid index!\n";
         		break;
@@ -197,17 +201,16 @@ void PlayerManager::ManagePlayerTurn(std::shared_ptr<Player> player, Field& fiel
 
         	int x, y;
         	std::cout << "Enter target X Y: ";
-        	std::cin >> x >> y;
-
-        	auto spell = hand->getSpell(spell_idx);
+        	std::getline(std::cin, line);
+        	std::stringstream(line) >> x >> y;
 
         	bool result = CastSpell(player, spell_idx, x, y, field, world);
         	std::cout << (result ? "Spell cast!" : "Spell failed!") << std::endl;
 
         	hand->removeSpell(spell_idx);
-
         	break;
     	}
+
 
         default:
             std::cout << "Unknown command: " << command << std::endl;
@@ -230,7 +233,6 @@ std::shared_ptr<Entity> PlayerManager::findTargetAt(int x, int y, Field& field, 
         }
     }
 
-    // Ищем среди вражеских строений
     for (const auto& building_weak : world.EnemiesBuildings().GetEnemiesBuildings()) {
         if (auto building = building_weak.lock()) {
             if (field.GetPosEntity(building, x_e, y_e) && x_e == x && y_e == y) {
@@ -238,6 +240,14 @@ std::shared_ptr<Entity> PlayerManager::findTargetAt(int x, int y, Field& field, 
             }
         }
     }
+
+	for (const auto& tower_weak : world.EnemiesTowers().GetEnemiesTowers()) {
+		if (auto tower = tower_weak.lock()) {
+			if (field.GetPosEntity(tower, x_e, y_e) && x_e == x && y_e == y) {
+				return tower;
+			}
+		}
+	}
 
     return nullptr;
 }

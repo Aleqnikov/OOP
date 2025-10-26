@@ -8,7 +8,7 @@ public:
 	DirDamageSpell();
 	DirDamageSpell(int range, int damage);
 
-	void upgrade() override;
+	void upgrade(int) override;
 	bool use(const SpellContext& context) override;
 
 	int getDamage() const override;
