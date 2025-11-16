@@ -12,7 +12,14 @@ void TrapSpell::upgrade(int coeficient){
 
 
 bool TrapSpell::use(const SpellContext& context) {
-	if (!context.cell || !context.field) {
+	if (!context.cell || !context.field ||  !context.base_x || !context.base_y) {
+		return false;
+	}
+
+	int caster_x, caster_y;
+	context.field->GetPosEntity(context.caster, caster_x, caster_y);
+	int res = (caster_x - context.base_x)*(caster_x - context.base_x) + (caster_y - context.base_y)*(caster_y - context.base_y);
+	if (res >= 4) {
 		return false;
 	}
 

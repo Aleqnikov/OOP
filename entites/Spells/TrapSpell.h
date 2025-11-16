@@ -1,11 +1,11 @@
 #ifndef TRAPSPELL_H
 #define TRAPSPELL_H
 
-#include "ITrapSpell.h"
+#include "ISpell.h"
 #include "../../map/cells/Events/TrapEvent.h"
 
 
-class TrapSpell : public ITrapSpell {
+class TrapSpell : public ISpell {
 public:
 	TrapSpell();
 	TrapSpell(int damage);
@@ -15,8 +15,8 @@ public:
 
 	SpellType getSpellType() const override;
 
-	int getTrapDamage() const override;
-	void placeTrap(std::shared_ptr<Cell>) override;
+	int getTrapDamage() const;
+	void placeTrap(std::shared_ptr<Cell>);
 
 private:
 	int damage_;

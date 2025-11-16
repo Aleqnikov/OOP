@@ -8,7 +8,7 @@ public:
 	MoveResult EnterEntity(std::shared_ptr<Entity>) override;
 
 	std::shared_ptr<Cell> cloneStructure() const override;
-	std::string GetName() const;
+	std::string GetName() const override;
 
 };
 

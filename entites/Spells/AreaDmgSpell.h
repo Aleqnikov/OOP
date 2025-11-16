@@ -1,10 +1,10 @@
 #ifndef AREADMGSPELL_H
 #define AREADMGSPELL_H
 
-#include "IAreaDmgSpell.h"
+#include "ISpell.h"
 
 
-class AreaDmgSpell : public IAreaDmgSpell {
+class AreaDmgSpell : public ISpell {
 public:
 	AreaDmgSpell();
 	AreaDmgSpell(int, int);
@@ -12,8 +12,8 @@ public:
 	void upgrade(int) override;
 	bool use(const SpellContext&) override;
 
-	int getArea() const override;
-	int getDamage() const override;
+	int getArea() const;
+	int getDamage() const;
 
 	SpellType getSpellType() const override;
 

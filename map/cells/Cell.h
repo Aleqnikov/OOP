@@ -34,7 +34,7 @@ public:
 
 	std::shared_ptr<Entity> GetEntity() const;
 
-	virtual std::string GetName() const;
+	virtual std::string GetName() const ;
 
 protected:
 	std::shared_ptr<Entity> entity_;

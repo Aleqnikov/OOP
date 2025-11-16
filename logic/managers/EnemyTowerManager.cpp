@@ -36,7 +36,7 @@ bool EnemyTowerManager::EnemiesTowersTurn(Field& field) {
 
 	for (auto building_weak : enemies_towers_) {
 		if (auto building = building_weak.lock()) {
-			std::shared_ptr<IDirDmgSpell> spell = building->canAttack();
+			std::shared_ptr<ISpell> spell = building->canAttack();
 			if (!spell)
 				continue;
 

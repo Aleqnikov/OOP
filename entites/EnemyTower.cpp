@@ -19,7 +19,7 @@ bool EnemyTower::IsFriendly() const {
 
 
 
-std::shared_ptr<IDirDmgSpell> EnemyTower::canAttack() {
+std::shared_ptr<ISpell> EnemyTower::canAttack() {
 	if (current_tick_ != 0) {
 		current_tick_--;
 		return nullptr;

@@ -1,9 +1,9 @@
 #ifndef DIRDAMAGESPELL_H
 #define DIRDAMAGESPELL_H
 
-#include "IDirDmgSpell.h"
+#include "ISpell.h"
 
-class DirDamageSpell : public IDirDmgSpell {
+class DirDamageSpell : public ISpell {
 public:
 	DirDamageSpell();
 	DirDamageSpell(int, int);
@@ -11,8 +11,8 @@ public:
 	void upgrade(int) override;
 	bool use(const SpellContext&) override;
 
-	int getDamage() const override;
-	int getRange() const override;
+	int getDamage() const;
+	int getRange() const;
 
 	SpellType getSpellType() const override;
 

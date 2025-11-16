@@ -1,19 +1,19 @@
 #ifndef ENHACEMENTSPELL_H
 #define ENHACEMENTSPELL_H
 
-#include "IEnhacementSpell.h"
+#include "ISpell.h"
 
 
-class EnhacementSpell : public IEnhancementSpell {
+class EnhacementSpell : public ISpell {
 public:
 	EnhacementSpell();
 	EnhacementSpell(int);
 
 	bool use(const SpellContext&) override;
 	SpellType getSpellType() const override;
-	void applyEnhancement(std::shared_ptr<Hand>) override;
+	void applyEnhancement(std::shared_ptr<Hand>);
 	void upgrade(int) override;
-	int getEnhancement() override;
+	int getEnhancement();
 
 private:
 	int enhancement_;

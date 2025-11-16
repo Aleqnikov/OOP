@@ -1,14 +1,14 @@
 #ifndef SUMMSPELL_H
 #define SUMMSPELL_H
 
-#include "ISummSpell.h"
+#include "ISpell.h"
 
-class SummSpell : public ISummonSpell {
+class SummSpell : public ISpell {
 public:
 	SummSpell();
 	SummSpell(int);
 
-	int getAllyCount() const override;
+	int getAllyCount() const;
 	void upgrade(int) override;
 	bool use(const SpellContext&) override;
 	SpellType getSpellType() const override;

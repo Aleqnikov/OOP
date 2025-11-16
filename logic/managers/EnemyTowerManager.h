@@ -5,7 +5,7 @@
 #include <memory>
 #include "../../entites/EnemyTower.h"
 #include "../../map/Field.h"
-#include "../../entites/Spells/IDirDmgSpell.h"
+#include "../../entites/Spells/ISpell.h"
 
 class EnemyTowerManager {
 public:
