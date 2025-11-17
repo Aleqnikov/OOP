@@ -18,7 +18,7 @@ public:
 	virtual bool IsFriendly() const;
 	virtual ~Entity() = default;
 
-	TokenEntity serialise() const;
+	virtual TokenEntity serialise() const = 0;
 
 protected:
 	int hp_;

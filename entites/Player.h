@@ -25,7 +25,9 @@ public:
 	int GetScore();
 	void minusScore(int);
 	void addScore(int);
+	bool setHp(int);
 
+	TokenEntity serialise() const override;
 	TokenPlayer serialis() const;
 	static std::shared_ptr<Player> deserialise(const TokenPlayer&);
 

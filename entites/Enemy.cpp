@@ -4,6 +4,10 @@ Enemy::Enemy() : Entity() {
 	can_hit_on_walking_ = true;
 }
 
+Enemy::Enemy(int damage) : Enemy() {
+	damage_ = std::min(100, std::max(damage, 10));
+}
+
 bool Enemy::IsFriendly() const {
 	return false;
 }

@@ -54,6 +54,8 @@ public:
 	std::shared_ptr<Cell>  GetCell (int, int);
 
 	std::string GetCellType(int, int) const;
+	int getNotFriendlyCount();
+	bool ReplaceCellWithType(int x, int y, const std::string& type);
 
 private:
 	int height_;

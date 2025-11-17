@@ -4,7 +4,7 @@
 #include "../World.h"
 #include <random>
 
-bool EnemyBuildingManager::SpawnEnemiesBuildings(Field& field, int count_enemy_build) {
+bool EnemyBuildingManager::SpawnEnemiesBuildings(Field& field, int count_enemy_build, int level) {
     int w, h;
     field.GetSize(w, h);
     int count_spawn_cells = field.GetCountSpawnCells();
@@ -20,7 +20,7 @@ bool EnemyBuildingManager::SpawnEnemiesBuildings(Field& field, int count_enemy_b
     for (int i = 0; i < count_enemy_build; i++) {
         int x = x_dist(gen);
         int y = y_dist(gen);
-        auto enemy_building = std::make_shared<EnemyBuilding>();
+        auto enemy_building = std::make_shared<EnemyBuilding>(2*(2 - level/50));
         enemies_buildings_.push_back(enemy_building);
         while ((x == 0 && y == 0) || !field.SetEntity(enemy_building, x, y)) {
             x = x_dist(gen);

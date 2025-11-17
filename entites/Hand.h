@@ -30,6 +30,7 @@ public:
 	bool isFull() const;
 
 	void setRandomSpell();
+	void removeRandomHalf();
 
 private:
 	std::vector<std::shared_ptr<ISpell>> spells_;

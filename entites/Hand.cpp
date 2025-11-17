@@ -95,3 +95,19 @@ void Hand::setRandomSpell(){
 		break;
 	}
 }
+
+void Hand::removeRandomHalf() {
+	if (spells_.empty())
+		return;
+
+	size_t to_remove = spells_.size() / 2;
+
+	std::random_device rd;
+	std::mt19937 gen(rd());
+
+	for (size_t i = 0; i < to_remove; ++i) {
+		std::uniform_int_distribution<> dist(0, spells_.size() - 1);
+		size_t index = dist(gen);
+		spells_.erase(spells_.begin() + index);
+	}
+}

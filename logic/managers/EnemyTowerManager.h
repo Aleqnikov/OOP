@@ -9,7 +9,7 @@
 
 class EnemyTowerManager {
 public:
-	bool SpawnEnemiesTowers(Field&, int);
+	bool SpawnEnemiesTowers(Field&, int, int);
 	bool EnemiesTowersTurn(Field&);
 	const std::vector<std::weak_ptr<EnemyTower>>& GetEnemiesTowers() const;
 	void DeleteDeadEnemiesTowers(Field&);

@@ -4,7 +4,7 @@
 #include <limits>
 #include <cmath>
 
-bool EnemyTowerManager::SpawnEnemiesTowers(Field& field, int count_enemy_towers) {
+bool EnemyTowerManager::SpawnEnemiesTowers(Field& field, int count_enemy_towers, int level) {
     int w, h;
     field.GetSize(w, h);
     int count_spawn_cells = field.GetCountSpawnCells();
@@ -20,7 +20,7 @@ bool EnemyTowerManager::SpawnEnemiesTowers(Field& field, int count_enemy_towers)
     for (int i = 0; i < count_enemy_towers; i++) {
         int x = x_dist(gen);
         int y = y_dist(gen);
-        auto enemy_tower = std::make_shared<EnemyTower>(2, 5);
+        auto enemy_tower = std::make_shared<EnemyTower>(10 * (level/ 2), 5*(level/ 2));
         enemies_towers_.push_back(enemy_tower);
         while ((x == 0 && y == 0) || !field.SetEntity(enemy_tower, x, y)) {
             x = x_dist(gen);

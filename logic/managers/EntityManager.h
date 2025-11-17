@@ -13,7 +13,7 @@
 template<typename EntityType>
 class EntityManager {
 public:
-    bool SpawnEntities(Field& field, int count);
+    bool SpawnEntities(Field& field, int count, int level);
     bool EntitiesTurn(Field& field, std::shared_ptr<Entity> target = nullptr);
     bool GetMoveForEntity(Field& field, std::array<MoveType, 4>& moves,
                          std::shared_ptr<Entity> target, std::weak_ptr<Entity> current);
@@ -100,7 +100,7 @@ std::shared_ptr<Entity> EntityManager<EntityType>::FindTarget(int x, int y, Fiel
 }
 
 template<typename EntityType>
-bool EntityManager<EntityType>::SpawnEntities(Field& field, int count) {
+bool EntityManager<EntityType>::SpawnEntities(Field& field, int count, int level) {
     int w, h;
     field.GetSize(w, h);
     int count_spawn_cells = field.GetCountSpawnCells();
@@ -116,7 +116,7 @@ bool EntityManager<EntityType>::SpawnEntities(Field& field, int count) {
     for (int i = 0; i < count; i++) {
         int x = x_dist(gen);
         int y = y_dist(gen);
-        auto entity = std::make_shared<EntityType>();
+        auto entity = std::make_shared<EntityType>(20*(level/50));
         entities_.push_back(entity);
         while ((x == 0 && y == 0) || !field.SetEntity(entity, x, y)) {
             x = x_dist(gen);

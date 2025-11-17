@@ -113,9 +113,9 @@ TokenGameState GameSaver::load() {
         state.player_x       = j["player"]["x"];
         state.player_y       = j["player"]["y"];
 
-        state.player.weapon.base_damage       = j["player"]["weapon"]["damage"];
+        state.player.weapon.base_damage        = j["player"]["weapon"]["damage"];
         state.player.weapon.base_attack_radius = j["player"]["weapon"]["radius"];
-        state.player.weapon.attack_mode       = j["player"]["weapon"]["mode"];
+        state.player.weapon.attack_mode        = j["player"]["weapon"]["mode"];
 
         state.player.hand.limit = j["player"]["hand"]["limit"];
         state.player.hand.upgrade_coef = j["player"]["hand"]["upgrade_coef"];
@@ -142,12 +142,12 @@ TokenGameState GameSaver::load() {
                 const auto& cj = j["field"]["cells"][i][x];
                 auto& c = state.field.cells[i][x];
 
-                c.type = cj["type"];
+                c.type       = cj["type"];
                 c.has_entity = cj["has_entity"];
                 c.has_event  = cj["has_event"];
 
                 if (c.has_event) {
-                    c.event.type = cj["event"]["type"];
+                    c.event.type   = cj["event"]["type"];
                     c.event.damage = cj["event"]["damage"];
                 }
 
@@ -227,12 +227,10 @@ std::vector<std::string> GameSaver::listSaves() {
 void GameSaver::addSaveToIndex(const std::string& saveFile) {
 	try {
 		json j = json::array();
-		// прочитать существующий
 		std::ifstream ifs(kIndexFile);
 		if (ifs) {
 			try { j = json::parse(ifs); } catch (...) { j = json::array(); }
 		}
-		// привести к массиву строк
 		std::vector<std::string> names;
 		for (const auto& it : j) if (it.is_string()) names.push_back(it.get<std::string>());
 
@@ -244,6 +242,5 @@ void GameSaver::addSaveToIndex(const std::string& saveFile) {
 			if (ofs) ofs << out.dump(2);
 		}
 	} catch (...) {
-		// не критично
 	}
 }

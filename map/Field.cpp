@@ -212,3 +212,49 @@ std::shared_ptr<Cell> Field::GetCell(int x, int y) {
 std::string Field::GetCellType(int x, int y) const {
 	return field_[y][x]->GetName();
 }
+
+int Field::getNotFriendlyCount() {
+	int res = 0;
+
+	for (int i = 0; i < height_; i++){
+		for (int j = 0; j < width_; j++){
+			if (!field_[i][j]->IsEmpty() && !field_[i][j]->GetEntity()->IsFriendly()){
+				res++;
+			}
+		}
+	}
+	return res;
+}
+
+bool Field::ReplaceCellWithType(int x, int y, const std::string& type) {
+	if (!CorrectPosition(x, y))
+		return false;
+
+	// создаём нужный объект клетки
+	std::shared_ptr<Cell> newCell;
+	if (type == "Cell") {
+		newCell = std::make_shared<Cell>();
+	} else if (type == "Slowing") {
+		newCell = std::make_shared<SlowingCell>();
+	} else if (type == "Impassable") {
+		newCell = std::make_shared<ImpassableCell>();
+	} else {
+		newCell = std::make_shared<Cell>(); // fallback
+	}
+
+	// Заменяем структуру клетки (удаляется старая структура/ссылка)
+	field_[y][x] = newCell;
+
+	// Пересчитаем count_spawn_cells_ — простая и надёжная логика
+	int spawn = 0;
+	for (int i = 0; i < height_; ++i) {
+		for (int j = 0; j < width_; ++j) {
+			if (!std::dynamic_pointer_cast<ImpassableCell>(field_[i][j])) {
+				spawn++;
+			}
+		}
+	}
+	count_spawn_cells_ = spawn;
+
+	return true;
+}

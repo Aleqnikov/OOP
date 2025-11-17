@@ -11,7 +11,7 @@
 
 class World {
 public:
-	void Init(Field&, std::shared_ptr<Player>, int, int, int, int);
+	void Init(Field&, std::shared_ptr<Player>, int, int, int, int, int);
 	void Update(Field&, std::shared_ptr<Player>);
 	void DeleteDeadEntites(Field&);
 

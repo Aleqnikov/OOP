@@ -5,6 +5,10 @@ Ally::Ally() : Entity() {
 	can_hit_on_walking_ = true;
 }
 
+Ally::Ally(int damage) : Ally() {
+	damage_ = std::min(100, std::max(damage, 10));
+}
+
 bool Ally::IsFriendly() const {
 	return true;
 }

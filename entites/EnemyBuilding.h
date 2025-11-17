@@ -12,7 +12,7 @@ public:
 	bool CanSpawn();
 	bool IsFriendly() const override;
 
-	TokenEntity serialise() const;
+	TokenEntity serialise() const override;
 
 private:
 	int steps_to_spawn_;

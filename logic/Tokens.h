@@ -71,6 +71,7 @@ struct TokenGameState {
 	TokenField field;
 	int player_x;
 	int player_y;
+	int level;
 };
 
 #endif //TOKEN_H

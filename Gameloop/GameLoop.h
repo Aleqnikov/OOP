@@ -17,6 +17,18 @@ class GameLoop {
 public:
 	GameLoop();
 
+private:
+	int currentLevel;
+
+	void StartLevel(World&, Field&, std::shared_ptr<Player>);
+	bool CheckLevelComplete(Field& field);
+	void getLevelMod(World&, Field&, std::shared_ptr<Player>&);
+	void globalCommandParser(World&, Field&, std::shared_ptr<Player>);
+
+	void GenerateLevel(int&, int&, int&);
+
+
+
 };
 
 

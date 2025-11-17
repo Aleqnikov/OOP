@@ -1,11 +1,11 @@
 #include "World.h"
 
-void World::Init(Field& field, std::shared_ptr<Player> player, int count_enemies, int count_buildings, int count_towers, int count_allies) {
+void World::Init(Field& field, std::shared_ptr<Player> player, int level, int count_enemies, int count_buildings, int count_towers, int count_allies) {
 	playerManager_.SpawnPlayer(field, player);
-	enemyManager_.SpawnEntities(field, count_enemies);
-	buildingManager_.SpawnEnemiesBuildings(field, count_buildings);
-	towerManager_.SpawnEnemiesTowers(field, count_towers);
-	allyManager_.SpawnEntities(field, count_allies);
+	enemyManager_.SpawnEntities(field, count_enemies, level);
+	buildingManager_.SpawnEnemiesBuildings(field, count_buildings, level);
+	towerManager_.SpawnEnemiesTowers(field, count_towers, level);
+	allyManager_.SpawnEntities(field, count_allies, level);
 }
 
 void World::Update(Field& field, std::shared_ptr<Player> player) {
@@ -79,60 +79,89 @@ TokenGameState World::SerializeState(Field& field, std::shared_ptr<Player> playe
 
 void World::LoadState(Field& field, std::shared_ptr<Player>& player, const TokenGameState& state) {
 
-	field = Field(state.field.width, state.field.height, 0, 0);
+    int W = state.field.width;
+    int H = state.field.height;
 
-	enemyManager_ = EntityManager<Enemy>();
-	allyManager_ = EntityManager<Ally>();
-	buildingManager_ = EnemyBuildingManager();
-	towerManager_ = EnemyTowerManager();
+    // создаём поле нужного размера (без произвольной рандомной генерации)
+    field = Field(W, H, 0, 0); // у нас сразу есть контейнер field_
 
-	// Воссоздаем клетки и entities
-	for (int i = 0; i < state.field.height; ++i) {
-		for (int j = 0; j < state.field.width; ++j) {
-			const TokenCell& token_cell = state.field.cells[i][j];
-			auto cell = field.GetCell(j, i);
+    // обнулим менеджеры (чтобы не было остатков)
+    enemyManager_ = EntityManager<Enemy>();
+    allyManager_ = EntityManager<Ally>();
+    buildingManager_ = EnemyBuildingManager();
+    towerManager_ = EnemyTowerManager();
 
-			// Воссоздаем Event
-			if (token_cell.has_event && token_cell.event.type == "Trap") {
-				auto trap = std::make_shared<TrapEvent>(token_cell.event.damage);
-				cell->SetEvent(trap);
-			}
+    // Воссоздаём клетки, события и сущности
+    for (int y = 0; y < H; ++y) {
+        for (int x = 0; x < W; ++x) {
+            const TokenCell& token_cell = state.field.cells[y][x];
 
-			// Воссоздаем Entity
-			if (token_cell.has_entity) {
-				std::shared_ptr<Entity> entity;
+            // 1) Воссоздаём тип клетки через публичный API Field::ReplaceCellWithType
+            field.ReplaceCellWithType(x, y, token_cell.type);
 
-				if (token_cell.entity.type == "Enemy") {
-					entity = std::make_shared<Enemy>();
-					entity->CauseDamage(100 - token_cell.entity.hp); // установка HP
-					enemyManager_.AddEntity(std::dynamic_pointer_cast<Enemy>(entity));
+            // Получаем указатель на клетку через публичный API
+            auto cell = field.GetCell(x, y);
 
-				} else if (token_cell.entity.type == "Ally") {
-					entity = std::make_shared<Ally>();
-					entity->CauseDamage(100 - token_cell.entity.hp);
-					allyManager_.AddEntity(std::dynamic_pointer_cast<Ally>(entity));
+            // 2) Воссоздаём Event
+            if (token_cell.has_event && token_cell.event.type == "Trap") {
+                auto trap = std::make_shared<TrapEvent>(token_cell.event.damage);
+                cell->SetEvent(trap);
+            }
 
-				} else if (token_cell.entity.type == "EnemyBuilding") {
-					entity = std::make_shared<EnemyBuilding>(token_cell.entity.steps_to_spawn);
-					entity->CauseDamage(100 - token_cell.entity.hp);
-					buildingManager_.AddEntity(std::dynamic_pointer_cast<EnemyBuilding>(entity));
+            // 3) Воссоздаём Entity
+            if (token_cell.has_entity) {
+                std::shared_ptr<Entity> entity;
 
-				} else if (token_cell.entity.type == "EnemyTower") {
-					// Восстанавливаем башню с параметрами спелла
-					int spell_damage = std::stoi(token_cell.entity.spell.damage);
-					int spell_range = std::stoi(token_cell.entity.spell.range);
-					entity = std::make_shared<EnemyTower>(spell_range, spell_damage);
-					entity->CauseDamage(100 - token_cell.entity.hp);
-					towerManager_.AddEntity(std::dynamic_pointer_cast<EnemyTower>(entity));
-				}
+                if (token_cell.entity.type == "Enemy") {
+                    entity = std::make_shared<Enemy>();
+                    entity->CauseDamage(100 - token_cell.entity.hp);
+                    enemyManager_.AddEntity(std::dynamic_pointer_cast<Enemy>(entity));
 
-				if (entity) {
-					field.SetEntity(entity, j, i);
-				}
-			}
-		}
-	}
+                } else if (token_cell.entity.type == "Ally") {
+                    entity = std::make_shared<Ally>();
+                    entity->CauseDamage(100 - token_cell.entity.hp);
+                    allyManager_.AddEntity(std::dynamic_pointer_cast<Ally>(entity));
 
-	player = Player::deserialise(state.player);
-	field.SetEntity(player, state.player_x, state.player_y);
+                } else if (token_cell.entity.type == "EnemyBuilding") {
+                    entity = std::make_shared<EnemyBuilding>(token_cell.entity.steps_to_spawn);
+                    entity->CauseDamage(100 - token_cell.entity.hp);
+                    buildingManager_.AddEntity(std::dynamic_pointer_cast<EnemyBuilding>(entity));
+
+                } else if (token_cell.entity.type == "EnemyTower") {
+                    int spell_damage = 0;
+                    int spell_range = 0;
+                    try {
+                        if (!token_cell.entity.spell.damage.empty())
+                            spell_damage = std::stoi(token_cell.entity.spell.damage);
+                        if (!token_cell.entity.spell.range.empty())
+                            spell_range = std::stoi(token_cell.entity.spell.range);
+                    } catch (...) {
+                        spell_damage = 5;
+                        spell_range = 2;
+                    }
+                    entity = std::make_shared<EnemyTower>(spell_range, spell_damage);
+                    entity->CauseDamage(100 - token_cell.entity.hp);
+                    towerManager_.AddEntity(std::dynamic_pointer_cast<EnemyTower>(entity));
+                }
+
+                // Только если entity создана — поставим её в клетку через public API
+                if (entity) {
+                    // field.SetEntity проверит корректность позиции / impassable / занятость
+                    // если SetEntity вернёт false — это может означать, что в сейве была неконсистентность (например impassable+has_entity)
+                    bool placed = field.SetEntity(entity, x, y);
+                    if (!placed) {
+                        // В редких случаях (импасабы), пробуем форсировать установку: если клетка импассабл — заменим её на обычную Cell и установим
+                        if (field.GetCell(x, y)->GetName() == "Impassable") {
+                            field.ReplaceCellWithType(x, y, "Cell");
+                            field.SetEntity(entity, x, y);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // 4) Восстанавливаем игрока и ставим его
+    player = Player::deserialise(state.player);
+    field.SetEntity(player, state.player_x, state.player_y);
 }

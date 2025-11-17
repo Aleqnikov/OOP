@@ -11,7 +11,7 @@ class World;
 
 class EnemyBuildingManager {
 public:
-	bool SpawnEnemiesBuildings(Field&, int);
+	bool SpawnEnemiesBuildings(Field&, int, int);
 	bool EnemiesBuildingTurn(Field&, World&);
 	const std::vector<std::weak_ptr<EnemyBuilding>>& GetEnemiesBuildings() const;
 	void DeleteDeadEnemiesBuildings(Field&);

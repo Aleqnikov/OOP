@@ -126,3 +126,15 @@ std::shared_ptr<Player> Player::deserialise(const TokenPlayer& token) {
 
 	return player;
 }
+
+bool Player::setHp(int hp) {
+	if (hp <= 0)
+		return false;
+
+	hp_ = std::max(hp, 200);
+	return true;
+}
+
+TokenEntity Player::serialise() const {
+	return TokenEntity();
+}

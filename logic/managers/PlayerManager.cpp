@@ -211,32 +211,6 @@ void PlayerManager::ManagePlayerTurn(std::shared_ptr<Player> player, Field& fiel
         	hand->removeSpell(spell_idx);
         	break;
     	}
-    	case 'S': {
-        	// Сохранение игры
-        	std::cout << "Enter save filename (e.g. save1.json): ";
-        	std::string fname;
-        	std::getline(std::cin, fname);
-        	if (fname.empty()) {
-        		std::cout << "Save cancelled.\n";
-        		break;
-        	}
-
-        	try {
-        		// Получим состояние через World (используем world.SerializeState)
-        		TokenGameState state = world.SerializeState(field, player);
-        		GameSaver saver(fname);
-        		saver.save(state);
-        		GameSaver::addSaveToIndex(fname);
-        		std::cout << "Game saved to: " << fname << std::endl;
-        	} catch (const SaveException& e) {
-        		std::cout << "Save failed: " << e.what() << std::endl;
-        	} catch (const std::exception& e) {
-        		std::cout << "Save failed: " << e.what() << std::endl;
-        	}
-        	break;
-    	}
-
-
 
         default:
             std::cout << "Unknown command: " << command << std::endl;
