@@ -11,6 +11,7 @@ public:
 	bool IsFriendly() const override;
 
 	std::shared_ptr<ISpell> canAttack();
+	TokenEntity serialise() const;
 
 private:
 	std::shared_ptr<ISpell> spell_;

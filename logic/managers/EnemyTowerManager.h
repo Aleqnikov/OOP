@@ -13,6 +13,7 @@ public:
 	bool EnemiesTowersTurn(Field&);
 	const std::vector<std::weak_ptr<EnemyTower>>& GetEnemiesTowers() const;
 	void DeleteDeadEnemiesTowers(Field&);
+	void AddEntity(std::weak_ptr<EnemyTower> tower);
 
 private:
 	std::shared_ptr<Entity> findTarget(int, int, Field&);

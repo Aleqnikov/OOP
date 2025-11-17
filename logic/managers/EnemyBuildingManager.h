@@ -15,6 +15,8 @@ public:
 	bool EnemiesBuildingTurn(Field&, World&);
 	const std::vector<std::weak_ptr<EnemyBuilding>>& GetEnemiesBuildings() const;
 	void DeleteDeadEnemiesBuildings(Field&);
+	void AddEntity(std::weak_ptr<EnemyBuilding> building);
+
 
 private:
 	std::vector<std::weak_ptr<EnemyBuilding>> enemies_buildings_;

@@ -6,6 +6,8 @@
 #include <memory>
 #include "Hand.h"
 
+#include "../logic/Tokens.h"
+
 class Hand;
 
 class Player : public Entity {
@@ -23,6 +25,9 @@ public:
 	int GetScore();
 	void minusScore(int);
 	void addScore(int);
+
+	TokenPlayer serialis() const;
+	static std::shared_ptr<Player> deserialise(const TokenPlayer&);
 
 private:
 	int score_;

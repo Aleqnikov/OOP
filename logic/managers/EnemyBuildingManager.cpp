@@ -77,3 +77,7 @@ void EnemyBuildingManager::DeleteDeadEnemiesBuildings(Field& field) {
 const std::vector<std::weak_ptr<EnemyBuilding>>& EnemyBuildingManager::GetEnemiesBuildings() const {
     return enemies_buildings_;
 }
+
+void EnemyBuildingManager::AddEntity(std::weak_ptr<EnemyBuilding> building) {
+	enemies_buildings_.push_back(building);
+}

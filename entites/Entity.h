@@ -2,6 +2,7 @@
 #define ENTITY_H
 
 #include <memory>
+#include "../logic/Tokens.h"
 
 class Entity {
 public:
@@ -16,6 +17,8 @@ public:
 	int GetHP() const;
 	virtual bool IsFriendly() const;
 	virtual ~Entity() = default;
+
+	TokenEntity serialise() const;
 
 protected:
 	int hp_;

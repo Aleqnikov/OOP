@@ -29,3 +29,10 @@ void EnhacementSpell::upgrade(int coeficient) {
 int EnhacementSpell::getEnhancement()  {
 	return enhancement_;
 }
+
+TokenSpell EnhacementSpell::serialise() const {
+	TokenSpell token;
+	token.type = "Enhancement";
+	token.enhancement = std::to_string(enhancement_);
+	return token;
+}

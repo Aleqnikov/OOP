@@ -12,7 +12,7 @@ public:
 	void upgrade(int) override;
 	bool use(const SpellContext&) override;
 	SpellType getSpellType() const override;
-
+	TokenSpell serialise() const override;
 private:
 	int count_allies_;
 };

@@ -7,6 +7,7 @@ class Ally : public Entity{
 public:
 	Ally();
 	bool IsFriendly() const override;
+	TokenEntity serialise() const;
 };
 
 

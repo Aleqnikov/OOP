@@ -7,6 +7,7 @@ class Enemy : public Entity {
 public:
 	Enemy();
 	bool IsFriendly() const override;
+	TokenEntity serialise() const;
 };
 
 #endif // ENEMY_H

@@ -3,6 +3,7 @@
 
 #include <memory>
 #include "../Entity.h"
+#include "../../logic/Tokens.h"
 
 // Forward declaration для избежания циклических зависимостей
 class Field; // Предварительное объявление вместо #include "../../map/Field.h"
@@ -33,6 +34,7 @@ public:
     virtual SpellType getSpellType() const = 0;
     virtual void upgrade(int) = 0;
     virtual bool use(const SpellContext&) = 0;
+	virtual TokenSpell serialise() const = 0;
 };
 
 #endif // ISPELL_H

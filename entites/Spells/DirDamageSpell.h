@@ -15,7 +15,7 @@ public:
 	int getRange() const;
 
 	SpellType getSpellType() const override;
-
+	TokenSpell serialise() const override;
 private:
 	int damage_;
 	int range_;

@@ -16,6 +16,7 @@ public:
 	int getDamage() const;
 
 	SpellType getSpellType() const override;
+	TokenSpell serialise() const override;
 
 private:
 	int damage_;

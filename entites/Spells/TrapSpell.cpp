@@ -41,3 +41,10 @@ void TrapSpell::placeTrap(std::shared_ptr<Cell> cell){
 
 	cell->SetEvent(trap);
 }
+
+TokenSpell TrapSpell::serialise() const {
+	TokenSpell token;
+	token.type = "Trap";
+	token.damage = std::to_string(damage_);
+	return token;
+}

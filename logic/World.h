@@ -20,6 +20,9 @@ public:
 	EnemyBuildingManager& EnemiesBuildings();
 	EnemyTowerManager& EnemiesTowers();
 	EntityManager<Ally>& Allyes();
+	TokenGameState SerializeState(Field& field, std::shared_ptr<Player> player);
+	void LoadState(Field& field, std::shared_ptr<Player>& player, const TokenGameState& state);
+
 
 private:
 	EntityManager<Enemy> enemyManager_;

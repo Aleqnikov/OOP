@@ -48,3 +48,10 @@ bool SummSpell::use(const SpellContext& context) {
 
 	return spawned;
 }
+
+TokenSpell SummSpell::serialise() const {
+	TokenSpell token;
+	token.type = "Summon";
+	token.count_allies = std::to_string(count_allies_);
+	return token;
+}

@@ -48,3 +48,11 @@ void DirDamageSpell::upgrade(int coeficient) {
 SpellType DirDamageSpell::getSpellType() const {
 	return SpellType::DirDmg;
 }
+
+TokenSpell DirDamageSpell::serialise() const {
+	TokenSpell token;
+	token.type = "DirDmg";
+	token.damage = std::to_string(damage_);
+	token.range = std::to_string(range_);
+	return token;
+}

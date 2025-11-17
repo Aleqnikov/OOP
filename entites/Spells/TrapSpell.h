@@ -17,6 +17,7 @@ public:
 
 	int getTrapDamage() const;
 	void placeTrap(std::shared_ptr<Cell>);
+	TokenSpell serialise() const override;
 
 private:
 	int damage_;

@@ -41,3 +41,11 @@ int AreaDmgSpell::getDamage() const {
 SpellType AreaDmgSpell::getSpellType() const {
 	return SpellType::AreaDmg;
 }
+
+TokenSpell AreaDmgSpell::serialise() const {
+	TokenSpell token;
+	token.type = "AreaDmg";
+	token.damage = std::to_string(damage_);
+	token.area = std::to_string(area_);
+	return token;
+}

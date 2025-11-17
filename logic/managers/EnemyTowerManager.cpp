@@ -107,3 +107,7 @@ std::shared_ptr<Entity> EnemyTowerManager::findTarget(int x, int y, Field& field
 
     return nearest;
 }
+
+void EnemyTowerManager::AddEntity(std::weak_ptr<EnemyTower> tower) {
+	enemies_towers_.push_back(tower);
+}

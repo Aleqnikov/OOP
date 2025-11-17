@@ -12,6 +12,8 @@ public:
 	bool CanSpawn();
 	bool IsFriendly() const override;
 
+	TokenEntity serialise() const;
+
 private:
 	int steps_to_spawn_;
 };

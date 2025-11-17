@@ -14,6 +14,7 @@ public:
 	void applyEnhancement(std::shared_ptr<Hand>);
 	void upgrade(int) override;
 	int getEnhancement();
+	TokenSpell serialise() const override;
 
 private:
 	int enhancement_;
