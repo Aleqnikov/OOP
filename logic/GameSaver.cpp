@@ -1,16 +1,16 @@
+// logic/GameSaver.cpp
 #include "GameSaver.h"
-#include <fstream>
-#include <iostream>
 #include <filesystem>
-#include <algorithm>
-
+#include <iostream>
 
 GameSaver::GameSaver(const std::string& fileName) : fileName_(fileName) {}
 
 void GameSaver::save(const TokenGameState& state) {
+    // RAII: ofstream автоматически закроется при выходе из области видимости
     std::ofstream file(fileName_);
-    if (!file) {
-        throw SaveException("Cannot open file for saving: " + fileName_);
+    
+    if (!file.is_open()) {
+        throw FileOpenError(fileName_);
     }
 
     try {
@@ -87,20 +87,32 @@ void GameSaver::save(const TokenGameState& state) {
             j["field"]["cells"].push_back(row);
         }
 
-    	j["level"] = state.level;
+        j["level"] = state.level;
 
         file << j.dump(4);
+        
+        if (!file.good()) {
+            throw FileWriteError(fileName_);
+        }
 
+    } catch (const json::exception& e) {
+        throw SerializationError(std::string(e.what()));
+    } catch (const FileException&) {
+        throw; // Пробрасываем файловые исключения дальше
     } catch (const std::exception& e) {
-        throw SaveException("Error during serialization: " + std::string(e.what()));
+        throw SaveException("Unexpected error during save: " + std::string(e.what()));
     }
+    
+    // file автоматически закроется здесь (RAII)
 }
 
 
 TokenGameState GameSaver::load() {
+    // RAII: ifstream автоматически закроется
     std::ifstream file(fileName_);
-    if (!file) {
-        throw LoadException("Cannot open file for loading: " + fileName_);
+    
+    if (!file.is_open()) {
+        throw FileNotFoundError(fileName_);
     }
 
     try {
@@ -176,95 +188,133 @@ TokenGameState GameSaver::load() {
             }
         }
 
-    	if (j.contains("level") && j["level"].is_number_integer()) {
-    		state.level = j["level"];
-    	} else {
-    		state.level = 1;
-    	}
+        if (j.contains("level") && j["level"].is_number_integer()) {
+            state.level = j["level"];
+        } else {
+            state.level = 1;
+        }
 
         return state;
 
+    } catch (const json::parse_error& e) {
+        throw CorruptedSaveError(fileName_ + " (parse error: " + std::string(e.what()) + ")");
     } catch (const json::exception& e) {
-        throw LoadException("Invalid JSON format: " + std::string(e.what()));
+        throw InvalidDataError(std::string(e.what()));
+    } catch (const FileException&) {
+        throw;
+    } catch (const LoadException&) {
+        throw;
     } catch (const std::exception& e) {
-        throw LoadException("Error during deserialization: " + std::string(e.what()));
+        throw LoadException("Unexpected error during load: " + std::string(e.what()));
     }
+    
+    // file автоматически закроется здесь (RAII)
 }
 
 
 void GameSaver::checkCorrectFile(const json& j) {
-	if (!j.contains("player") || !j.contains("field")) {
-		throw LoadException("Missing required fields: player or field");
-	}
+    if (!j.contains("player") || !j.contains("field")) {
+        throw InvalidDataError("Missing required fields: player or field");
+    }
 
-	if (!j["player"].contains("hp") || !j["player"].contains("score")) {
-		throw LoadException("Missing player data");
-	}
+    if (!j["player"].contains("hp") || !j["player"].contains("score")) {
+        throw InvalidDataError("Missing player data");
+    }
 
-	if (!j["field"].contains("width") || !j["field"].contains("height")) {
-		throw LoadException("Missing field dimensions");
-	}
+    if (!j["field"].contains("width") || !j["field"].contains("height")) {
+        throw InvalidDataError("Missing field dimensions");
+    }
 
-	int w = j["field"]["width"];
-	int h = j["field"]["height"];
+    int w = j["field"]["width"];
+    int h = j["field"]["height"];
 
-	if (w < 10 || w > 25 || h < 10 || h > 25) {
-		throw LoadException("Invalid field dimensions");
-	}
+    if (w < 10 || w > 25 || h < 10 || h > 25) {
+        throw InvalidDataError("Invalid field dimensions: " + std::to_string(w) + "x" + std::to_string(h));
+    }
 }
 
 
 static const std::string kIndexFile = ".saves_index.json";
 
 std::vector<std::string> GameSaver::listSaves() {
-	std::vector<std::string> res;
-	try {
-		std::ifstream ifs(kIndexFile);
-		if (!ifs) return res;
-		json j = json::parse(ifs);
-		if (!j.is_array()) return res;
-		for (const auto& it : j) {
-			if (it.is_string()) res.push_back(it.get<std::string>());
-		}
-	} catch (...) {
-		// если индекс битый — вернём пустой список
-	}
-	return res;
+    std::vector<std::string> res;
+    try {
+        std::ifstream ifs(kIndexFile);
+        if (!ifs) return res;
+        
+        json j = json::parse(ifs);
+        if (!j.is_array()) return res;
+        
+        for (const auto& it : j) {
+            if (it.is_string()) res.push_back(it.get<std::string>());
+        }
+    } catch (const std::exception& e) {
+        std::cerr << "Warning: Failed to read saves index: " << e.what() << "\n";
+    }
+    return res;
 }
 
 void GameSaver::addSaveToIndex(const std::string& saveFile) {
-	try {
-		json j = json::array();
-		std::ifstream ifs(kIndexFile);
-		if (ifs) {
-			try { j = json::parse(ifs); } catch (...) { j = json::array(); }
-		}
-		std::vector<std::string> names;
-		for (const auto& it : j) if (it.is_string()) names.push_back(it.get<std::string>());
+    try {
+        json j = json::array();
+        
+        std::ifstream ifs(kIndexFile);
+        if (ifs.is_open()) {
+            try { 
+                j = json::parse(ifs); 
+            } catch (const json::parse_error&) { 
+                j = json::array(); 
+            }
+        }
+        ifs.close();
+        
+        std::vector<std::string> names;
+        for (const auto& it : j) {
+            if (it.is_string()) names.push_back(it.get<std::string>());
+        }
 
-		if (std::find(names.begin(), names.end(), saveFile) == names.end()) {
-			names.push_back(saveFile);
-			json out = json::array();
-			for (auto &n : names) out.push_back(n);
-			std::ofstream ofs(kIndexFile, std::ios::trunc);
-			if (ofs) ofs << out.dump(2);
-		}
-	} catch (...) {
-	}
+        if (std::find(names.begin(), names.end(), saveFile) == names.end()) {
+            names.push_back(saveFile);
+        }
+        
+        json out = json::array();
+        for (const auto& n : names) out.push_back(n);
+        
+        std::ofstream ofs(kIndexFile, std::ios::trunc);
+        if (!ofs.is_open()) {
+            throw FileOpenError(kIndexFile);
+        }
+        
+        ofs << out.dump(2);
+        
+        if (!ofs.good()) {
+            throw FileWriteError(kIndexFile);
+        }
+        
+    } catch (const std::exception& e) {
+        std::cerr << "Warning: Failed to update saves index: " << e.what() << "\n";
+    }
 }
 
 void GameSaver::rebuildIndex(const std::vector<std::string>& saves) {
-	try {
-		json out = json::array();
-		for (const auto& s : saves) {
-			out.push_back(s);
-		}
+    try {
+        json out = json::array();
+        for (const auto& s : saves) {
+            out.push_back(s);
+        }
 
-		std::ofstream ofs(kIndexFile, std::ios::trunc);
-		if (ofs) {
-			ofs << out.dump(2);
-		}
-	} catch (...) {
-		// Не критично
-	}
+        std::ofstream ofs(kIndexFile, std::ios::trunc);
+        if (!ofs.is_open()) {
+            throw FileOpenError(kIndexFile);
+        }
+        
+        ofs << out.dump(2);
+        
+        if (!ofs.good()) {
+            throw FileWriteError(kIndexFile);
+        }
+        
+    } catch (const std::exception& e) {
+        std::cerr << "Warning: Failed to rebuild saves index: " << e.what() << "\n";
+    }
 }

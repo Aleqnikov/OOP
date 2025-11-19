@@ -249,13 +249,11 @@ void PlayerManager::ManagePlayerTurn(std::shared_ptr<Player> player, Field& fiel
             }
             break;
         }
-
     	case 'S': {
         	std::cout << "Enter save name (without .json): ";
         	std::string name;
         	std::getline(std::cin, name);
 
-        	// trim
         	while (!name.empty() && isspace(name.front())) name.erase(name.begin());
         	while (!name.empty() && isspace(name.back())) name.pop_back();
 
@@ -264,7 +262,6 @@ void PlayerManager::ManagePlayerTurn(std::shared_ptr<Player> player, Field& fiel
         		break;
         	}
 
-        	// если вдруг ввели .json — убираем
         	if (name.size() > 5 && name.substr(name.size() - 5) == ".json")
         		name = name.substr(0, name.size() - 5);
 
@@ -277,10 +274,22 @@ void PlayerManager::ManagePlayerTurn(std::shared_ptr<Player> player, Field& fiel
         		saver.save(state);
         		GameSaver::addSaveToIndex(filename);
 
-        		std::cout << "Game saved to " << filename << "\n";
+        		std::cout << "✓ Game saved to " << filename << "\n";
+        	}
+        	catch (const FileOpenError& e) {
+        		std::cerr << "Error: " << e.what() << "\n";
+        	}
+        	catch (const FileWriteError& e) {
+        		std::cerr << "Error: " << e.what() << "\n";
+        	}
+        	catch (const SerializationError& e) {
+        		std::cerr << "Error: " << e.what() << "\n";
+        	}
+        	catch (const SaveException& e) {
+        		std::cerr << "Save failed: " << e.what() << "\n";
         	}
         	catch (const std::exception& e) {
-        		std::cout << "Save failed: " << e.what() << "\n";
+        		std::cerr << "Unexpected error: " << e.what() << "\n";
         	}
 
         	break;

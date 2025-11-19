@@ -85,7 +85,15 @@ bool GameLoop::LoadGameMenu(World& world, Field& field, std::shared_ptr<Player>&
             GameSaver g(f);
             g.load();
             valid.push_back(f);
-        } catch (...) {}
+        } catch (const FileNotFoundError& e) {
+            std::cerr << "Skip missing file: " << e.what() << "\n";
+        } catch (const CorruptedSaveError& e) {
+            std::cerr << "Skip corrupted save: " << e.what() << "\n";
+        } catch (const InvalidDataError& e) {
+            std::cerr << "Skip invalid save: " << e.what() << "\n";
+        } catch (const std::exception& e) {
+            std::cerr << "Skip unreadable save: " << e.what() << "\n";
+        }
     }
 
     if (valid.empty()) {
@@ -104,7 +112,12 @@ bool GameLoop::LoadGameMenu(World& world, Field& field, std::shared_ptr<Player>&
     std::getline(std::cin, sel);
 
     int idx = -1;
-    try { idx = std::stoi(sel); } catch(...) { return false; }
+    try {
+        idx = std::stoi(sel);
+    } catch (const std::exception& e) {
+        std::cerr << "Invalid input: " << e.what() << "\n";
+        return false;
+    }
 
     if (idx <= 0 || idx > static_cast<int>(valid.size())) {
         std::cout << "Cancelled.\n";
@@ -116,12 +129,21 @@ bool GameLoop::LoadGameMenu(World& world, Field& field, std::shared_ptr<Player>&
         TokenGameState st = saver.load();
         currentLevel = st.level;
         world.LoadState(field, player, st);
-        std::cout << "Loaded: " << valid[idx-1] << "\n";
+        std::cout << "✓ Loaded: " << valid[idx-1] << "\n";
         return true;
+    } catch (const FileNotFoundError& e) {
+        std::cerr << "Error: " << e.what() << "\n";
+    } catch (const CorruptedSaveError& e) {
+        std::cerr << "Error: " << e.what() << "\n";
+    } catch (const InvalidDataError& e) {
+        std::cerr << "Error: " << e.what() << "\n";
+    } catch (const LoadException& e) {
+        std::cerr << "Load failed: " << e.what() << "\n";
     } catch (const std::exception& e) {
-        std::cout << "Cannot load: " << e.what() << "\n";
-        return false;
+        std::cerr << "Unexpected error: " << e.what() << "\n";
     }
+
+    return false;
 }
 
 void GameLoop::DeleteSaveMenu() {
@@ -143,8 +165,10 @@ void GameLoop::DeleteSaveMenu() {
     std::getline(std::cin, sel);
 
     int idx = -1;
-    try { idx = std::stoi(sel); } catch(...) {
-        std::cout << "Invalid input.\n";
+    try {
+        idx = std::stoi(sel);
+    } catch (const std::exception& e) {
+        std::cerr << "Invalid input: " << e.what() << "\n";
         return;
     }
 
@@ -155,15 +179,17 @@ void GameLoop::DeleteSaveMenu() {
 
     try {
         std::filesystem::remove(saves[idx-1]);
-        std::cout << "Deleted: " << saves[idx-1] << "\n";
+        std::cout << "✓ Deleted: " << saves[idx-1] << "\n";
 
-        // Обновляем индекс
         saves.erase(saves.begin() + idx - 1);
         GameSaver::rebuildIndex(saves);
+    } catch (const std::filesystem::filesystem_error& e) {
+        std::cerr << "Delete failed: " << e.what() << "\n";
     } catch (const std::exception& e) {
-        std::cout << "Delete failed: " << e.what() << "\n";
+        std::cerr << "Unexpected error: " << e.what() << "\n";
     }
 }
+
 
 void GameLoop::StartLevel(World& world, Field& field, std::shared_ptr<Player> player) {
     std::cout << "\n╔════════════════════════════════════════╗\n";
@@ -251,7 +277,11 @@ bool GameLoop::CheckLevelComplete(Field& field) {
 }
 
 void GameLoop::GenerateLevel(int& enemy, int& buildings, int& towers) {
-    enemy = currentLevel + 2;
-    buildings = currentLevel / 2 + 1;
-    towers = currentLevel / 3 + 1;
+	// Ограничиваем максимальный уровень для предотвращения переполнения
+	const int MAX_LEVEL = 100;
+	int safeLevel = std::min(currentLevel, MAX_LEVEL);
+
+	enemy = std::min(safeLevel + 2, 50); // Максимум 50 врагов
+	buildings = std::min(safeLevel / 2 + 1, 20); // Максимум 20 зданий
+	towers = std::min(safeLevel / 3 + 1, 15); // Максимум 15 башен
 }

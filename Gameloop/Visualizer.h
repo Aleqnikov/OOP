@@ -16,7 +16,7 @@ public:
 
 private:
 	static void PrintFrame(const std::vector<std::vector<std::string>>& frame,
-						   int width, int height, int player_score);
+						   int width, int height, int player_score, int);
 };
 
 

@@ -3,157 +3,126 @@
 #include <iomanip>
 #include "../map/cells/Events/TrapEvent.h"
 
+// ANSI цвета
+#define RESET   "\033[0m"
+#define RED     "\033[31m"
+#define GREEN   "\033[32m"
+#define BLUE    "\033[34m"
+#define DARKBLUE "\033[38;5;18m"
+#define YELLOW  "\033[33m"
+#define ORANGE  "\033[38;5;208m"
+#define GRAY    "\033[37m"
+#define BLACK   "\033[30m"
+#define MAGENTA "\033[35m"
+#define CYAN    "\033[36m"
+#define BORDEAUX "\033[38;5;52m" // ловушки
+
 void Visualizer::PrintFrame(const std::vector<std::vector<std::string>>& frame,
-                            int width, int height, int player_score)
+                            int width, int height, int player_score,
+                            int player_hp)
 {
-    std::cout << "\n=== Player Score: " << player_score << " ===\n\n";
+    std::cout << "\033[H"; // курсор в верхний левый угол
 
-    // Верхняя граница
-    std::cout << "+";
-    for (int j = 0; j < width; ++j) {
-        std::cout << "----------+";
-    }
-    std::cout << "\n";
+    // HP игрока сверху в рамке фиолетовым
+    std::cout << MAGENTA << "+--------+\n";
+    std::cout << "| HP " << std::setw(3) << std::left << player_hp << "|\n";
+    std::cout << "+--------+" << RESET << "\n";
 
-    for (int i = 0; i < height; ++i) {
-        // Строка с типом клетки и сущностью
-        std::cout << "|";
-        for (int j = 0; j < width; ++j) {
-            const std::string& full = frame[i][j];
-            size_t p = full.find(':');
-            std::string type = (p == std::string::npos ? full : full.substr(0, p));
+    std::cout << "Score: " << player_score << "\n";
 
-            // Ограничиваем длину до 10 символов
-            if (type.length() > 10) {
-                type = type.substr(0, 9) + ".";
-            }
+	// Верхняя координатная строка (X)
+	std::cout << "   "; // под место для линии слева
+	for (int x = 0; x < width; ++x) {
+		std::cout << std::setw(3) << x; // каждая цифра занимает 3 символа
+	}
+	std::cout << "\n";
 
-            std::cout << std::setw(10) << std::left << type << "|";
-        }
-        std::cout << "\n";
+	// Горизонтальная линия под координатами X
+	std::cout << CYAN << "   "; // место под вертикальную линию слева
+	for (int x = 0; x < width; ++x) {
+		std::cout << "───"; // точно 3 символа под каждую клетку
+	}
+	std::cout << RESET << "\n";
 
-        // Строка с событиями (если есть)
-        std::cout << "|";
-        for (int j = 0; j < width; ++j) {
-            const std::string& full = frame[i][j];
-            size_t p = full.find(':');
-            std::string event = (p == std::string::npos ? "" : full.substr(p + 1));
+	// Вывод поля с вертикальной линией слева
+	for (int y = 0; y < height; ++y) {
+		std::cout << CYAN << std::setw(2) << y << "│" << RESET; // цифра строки + вертикальная линия без пробела
+		for (int x = 0; x < width; ++x) {
+			const std::string& cell = frame[y][x];
+			char symbol = cell.empty() ? '.' : cell[0];
+			std::string color = RESET;
 
-            if (event.empty()) {
-                std::cout << "          |";
-            } else {
-                if (event.length() > 10) {
-                    event = event.substr(0, 9) + ".";
-                }
-                std::cout << std::setw(10) << std::left << event << "|";
-            }
-        }
-        std::cout << "\n";
+			switch (symbol) {
+				case 'P': color = GREEN; break;
+				case 'A': color = BLUE; break;
+				case 'E': color = RED; break;
+				case 'T': color = ORANGE; break;
+				case 'B': color = YELLOW; break;
+				case '*': color = BORDEAUX; break; // ловушка
+				case 'C': color = GRAY; break;     // обычная клетка
+				case 'I': color = BLACK; break;    // непроходимая
+				case 'S': color = DARKBLUE; break; // замедляющая
+				default: color = RESET; break;
+			}
 
-        // Разделитель между строками
-        std::cout << "+";
-        for (int j = 0; j < width; ++j) {
-            std::cout << "----------+";
-        }
-        std::cout << "\n";
-    }
+			std::cout << color << std::setw(3) << symbol << RESET;
+		}
+		std::cout << "\n";
+	}
 
-    // Легенда
-    std::cout << "\nLegend: P=Player, E=Enemy, B=Building, T=Tower, A=Ally\n";
-    std::cout << "Cells: C=Cell, S=Slowing, I=Impassable\n";
+
+    std::cout << "\nLegend: "
+              << GREEN << "P=Player " << RESET
+              << BLUE << "A=Ally " << RESET
+              << RED << "E=Enemy " << RESET
+              << ORANGE << "T=Tower " << RESET
+              << YELLOW << "B=Building " << RESET
+              << BORDEAUX << "*=Trap/Event " << RESET
+              << GRAY << "C=Cell " << RESET
+              << BLACK << "I=Impassable " << RESET
+              << DARKBLUE << "S=Slowing" << RESET
+              << "\n\n";
 }
-
 
 void Visualizer::Draw(Field& field, World& world, const std::shared_ptr<Player>& player) {
     int width, height;
     field.GetSize(width, height);
 
-    std::vector<std::vector<std::string>> frame(height, std::vector<std::string>(width));
+    std::vector<std::vector<std::string>> frame(height, std::vector<std::string>(width, "C")); // по умолчанию обычная клетка
 
     // Заполняем клетки и события
     for (int y = 0; y < height; ++y) {
         for (int x = 0; x < width; ++x) {
-            std::string type_full = field.GetCellType(x, y);
-            std::string type;
-
-            // Определяем тип клетки с цветным префиксом
-            if (type_full == "Cell") {
-                type = "C";
-            } else if (type_full == "Slowing") {
-                type = "S";
-            } else if (type_full == "Impassable") {
-                type = "I";
-            } else {
-                type = "?";
-            }
-
-            type += "(" + std::to_string(x) + "," + std::to_string(y) + ")";
-
-            // Проверяем события
-            std::string event = "";
             auto cell = field.GetCell(x, y);
-            if (cell && cell->GetEvent()) {
-                if (dynamic_cast<TrapEvent*>(cell->GetEvent().get())) {
-                    event = "Trap";
-                } else {
-                    event = "Event";
+            if (!cell) continue;
+
+            std::string type_full = field.GetCellType(x, y);
+            frame[y][x] = type_full.substr(0,1);
+            if (cell->GetEvent()) frame[y][x] = "*";
+        }
+    }
+
+    auto draw_entities = [&](auto& entities, char symbol) {
+        for (const auto& e : entities) {
+            if (auto ent = e.lock()) {
+                int x, y;
+                if (field.GetPosEntity(ent, x, y)) {
+                    frame[y][x] = symbol; // HP не отображаем
                 }
             }
-
-            frame[y][x] = type + ":" + event;
         }
-    }
+    };
 
-    // Отображаем врагов
-    for (const auto& e : world.Enemies().GetEntities()) {
-        if (auto enemy = e.lock()) {
-            int x, y;
-            if (field.GetPosEntity(enemy, x, y) && y < height && x < width) {
-                frame[y][x] = "E" + std::to_string(enemy->GetHP()) +
-                              "(" + std::to_string(x) + "," + std::to_string(y) + "):";
-            }
-        }
-    }
+    draw_entities(world.Enemies().GetEntities(), 'E');
+    draw_entities(world.Allyes().GetEntities(), 'A');
+    draw_entities(world.EnemiesTowers().GetEnemiesTowers(), 'T');
+    draw_entities(world.EnemiesBuildings().GetEnemiesBuildings(), 'B');
 
-    // Отображаем здания
-    for (const auto& e : world.EnemiesBuildings().GetEnemiesBuildings()) {
-        if (auto building = e.lock()) {
-            int x, y;
-            if (field.GetPosEntity(building, x, y) && y < height && x < width) {
-                frame[y][x] = "B" + std::to_string(building->GetHP()) +
-                              "(" + std::to_string(x) + "," + std::to_string(y) + "):";
-            }
-        }
-    }
-
-    // Отображаем башни
-    for (const auto& e : world.EnemiesTowers().GetEnemiesTowers()) {
-        if (auto tower = e.lock()) {
-            int x, y;
-            if (field.GetPosEntity(tower, x, y) && y < height && x < width) {
-                frame[y][x] = "T" + std::to_string(tower->GetHP()) +
-                              "(" + std::to_string(x) + "," + std::to_string(y) + "):";
-            }
-        }
-    }
-
-    // Отображаем союзников
-    for (const auto& e : world.Allyes().GetEntities()) {
-        if (auto ally = e.lock()) {
-            int x, y;
-            if (field.GetPosEntity(ally, x, y) && y < height && x < width) {
-                frame[y][x] = "A" + std::to_string(ally->GetHP()) +
-                              "(" + std::to_string(x) + "," + std::to_string(y) + "):";
-            }
-        }
-    }
-
-    // Отображаем игрока (поверх всего)
+    // Игрок поверх всего
     int px, py;
-    if (field.GetPosEntity(player, px, py) && py < height && px < width) {
-        frame[py][px] = "P" + std::to_string(player->GetHP()) +
-                        "(" + std::to_string(px) + "," + std::to_string(py) + "):";
+    if (field.GetPosEntity(player, px, py)) {
+        frame[py][px] = "P";
     }
 
-    PrintFrame(frame, width, height, player->GetScore());
+    PrintFrame(frame, width, height, player->GetScore(), player->GetHP());
 }
