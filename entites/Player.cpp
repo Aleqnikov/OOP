@@ -3,11 +3,13 @@
 Player::Player()
 	: Entity(),
 	  score_(0),
+	  max_hp_(100),
 	  weapon_(std::make_shared<Weapon>()) {}
 
 Player::Player(int hp, int damage, int attack_radius)
 	: Entity(),
-	  score_(1000),
+	  score_(0),
+		max_hp_(100),
 	  weapon_(std::make_shared<Weapon>(damage, attack_radius))
 {
 	hand_ = std::make_shared<Hand>(5);
@@ -84,7 +86,7 @@ std::shared_ptr<Player> Player::deserialise(const TokenPlayer& token) {
 	auto player = std::make_shared<Player>(token.hp, token.weapon.base_damage, token.weapon.base_attack_radius);
 
 	// Устанавливаем score
-	player->addScore(token.score - 1000);
+	player->addScore(token.score);
 
 	// Восстанавливаем режим атаки
 	if (token.weapon.attack_mode == "Close") {
@@ -131,10 +133,18 @@ bool Player::setHp(int hp) {
 	if (hp <= 0)
 		return false;
 
-	hp_ = std::max(hp, 200);
+	hp_ = std::min(hp, max_hp_);
 	return true;
 }
 
 TokenEntity Player::serialise() const {
 	return TokenEntity();
+}
+
+void Player::addMaxHp(int value) {
+	max_hp_ += value;
+}
+
+int Player::GetMaxHp() {
+	return max_hp_;
 }

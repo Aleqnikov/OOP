@@ -31,10 +31,14 @@ public:
 	TokenPlayer serialis() const;
 	static std::shared_ptr<Player> deserialise(const TokenPlayer&);
 
+	void addMaxHp(int);
+	int GetMaxHp();
+
 private:
 	int score_;
 	std::shared_ptr<Weapon> weapon_;
 	std::shared_ptr<Hand> hand_;
+	int max_hp_;
 };
 
 #endif // PLAYER_H

@@ -87,6 +87,8 @@ void GameSaver::save(const TokenGameState& state) {
             j["field"]["cells"].push_back(row);
         }
 
+    	j["level"] = state.level;
+
         file << j.dump(4);
 
     } catch (const std::exception& e) {
@@ -174,6 +176,12 @@ TokenGameState GameSaver::load() {
             }
         }
 
+    	if (j.contains("level") && j["level"].is_number_integer()) {
+    		state.level = j["level"];
+    	} else {
+    		state.level = 1;
+    	}
+
         return state;
 
     } catch (const json::exception& e) {
@@ -242,5 +250,21 @@ void GameSaver::addSaveToIndex(const std::string& saveFile) {
 			if (ofs) ofs << out.dump(2);
 		}
 	} catch (...) {
+	}
+}
+
+void GameSaver::rebuildIndex(const std::vector<std::string>& saves) {
+	try {
+		json out = json::array();
+		for (const auto& s : saves) {
+			out.push_back(s);
+		}
+
+		std::ofstream ofs(kIndexFile, std::ios::trunc);
+		if (ofs) {
+			ofs << out.dump(2);
+		}
+	} catch (...) {
+		// Не критично
 	}
 }

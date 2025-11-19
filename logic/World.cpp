@@ -1,6 +1,8 @@
 #include "World.h"
 
 void World::Init(Field& field, std::shared_ptr<Player> player, int level, int count_enemies, int count_buildings, int count_towers, int count_allies) {
+	level_ = level;
+
 	playerManager_.SpawnPlayer(field, player);
 	enemyManager_.SpawnEntities(field, count_enemies, level);
 	buildingManager_.SpawnEnemiesBuildings(field, count_buildings, level);
@@ -34,9 +36,13 @@ EntityManager<Ally>& World::Allyes() { return allyManager_; }
 TokenGameState World::SerializeState(Field& field, std::shared_ptr<Player> player) {
 	TokenGameState state;
 
+	state.level = level_;
+
 	// === PLAYER ===
 	state.player = player->serialis();
 	field.GetPosEntity(player, state.player_x, state.player_y);
+
+
 
 	// === FIELD ===
 	int width, height;
@@ -161,7 +167,8 @@ void World::LoadState(Field& field, std::shared_ptr<Player>& player, const Token
         }
     }
 
-    // 4) Восстанавливаем игрока и ставим его
     player = Player::deserialise(state.player);
     field.SetEntity(player, state.player_x, state.player_y);
 }
+
+

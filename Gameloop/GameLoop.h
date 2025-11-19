@@ -4,14 +4,11 @@
 #include <iostream>
 #include <vector>
 #include <memory>
-#include <iomanip>
+#include <random>
 #include "../map/Field.h"
 #include "../entites/Player.h"
 #include "../logic/World.h"
-#include "../map/cells/Cell.h"
-#include "../map/cells/Events/TrapEvent.h"
 #include "Visualizer.h"
-
 
 class GameLoop {
 public:
@@ -23,14 +20,12 @@ private:
 	void StartLevel(World&, Field&, std::shared_ptr<Player>);
 	bool CheckLevelComplete(Field& field);
 	void getLevelMod(World&, Field&, std::shared_ptr<Player>&);
-	void globalCommandParser(World&, Field&, std::shared_ptr<Player>);
+
+	bool LoadGameMenu(World&, Field&, std::shared_ptr<Player>&);
+	void DeleteSaveMenu();
+	void LevelUpMenu(std::shared_ptr<Player>&);
 
 	void GenerateLevel(int&, int&, int&);
-
-
-
 };
-
-
 
 #endif //GAMELOOP_H

@@ -1,173 +1,259 @@
 #include "GameLoop.h"
-
-#include "../logic/GameSaver.h"    // <- добавить include
+#include "../logic/GameSaver.h"
 #include <limits>
+#include <filesystem>
 
 GameLoop::GameLoop() {
-
-	// Базовое создание поля игрока.
-    std::shared_ptr<Player> player = std::make_shared<Player>(200, 100, 10);
+    std::shared_ptr<Player> player = std::make_shared<Player>(100, 100, 10);
     Field field(10, 10);
     World world;
 
-	getLevelMod(world, field, player);
+    getLevelMod(world, field, player);
 
-    std::cout << "Game started! Commands: w/a/s/d (move), r (change mode), b (buy spell), e X Y (attack), q I X Y (cast spell), S (save)\n";
+    std::cout << "\n=== CONTROLS ===\n";
+    std::cout << "w/a/s/d - Move | r - Change attack mode | b - Buy spell\n";
+    std::cout << "e X Y - Attack | q - Cast spell | S - Save game | D - Delete save\n\n";
 
     while (!player->IsDead()) {
+        std::cout << "\n========== LEVEL " << currentLevel << " ==========\n";
+        Visualizer::Draw(field, world, player);
 
-    	Visualizer::Draw(field, world, player);
 
-    	globalCommandParser(world, field, player);
 
         world.Update(field, player);
         world.DeleteDeadEntites(field);
 
-    	if (CheckLevelComplete(field)) {
-    		StartLevel(world, field, player);
-    	}
+        if (CheckLevelComplete(field)) {
+            std::cout << "\n*** LEVEL " << currentLevel << " COMPLETE! ***\n";
+            StartLevel(world, field, player);
+        }
     }
 
-    std::cout << "Game Over! Player is dead. Final Score: " << player->GetScore() << "\n";
+    std::cout << "\n=== GAME OVER ===\n";
+    std::cout << "Final Score: " << player->GetScore() << "\n";
+    std::cout << "Levels Completed: " << currentLevel - 1 << "\n\n";
+
+    std::cout << "Play again? (y/n): ";
+    std::string choice;
+    std::getline(std::cin, choice);
+    if (choice == "y" || choice == "Y") {
+        *this = GameLoop(); // Перезапуск
+    }
 }
 
 void GameLoop::getLevelMod(World& world, Field& field, std::shared_ptr<Player>& player) {
-	while (true) {
-        std::cout << "=== GAME MENU ===\n";
+    while (true) {
+        std::cout << "\n=== GAME MENU ===\n";
         std::cout << "1. New Game\n";
         std::cout << "2. Load Game\n";
-        std::cout << "3. Exit\n";
+        std::cout << "3. Delete Save\n";
+        std::cout << "4. Exit\n";
         std::cout << "Choice: ";
 
         std::string choice;
         std::getline(std::cin, choice);
 
         if (choice == "1") {
-            // Первый уроверь.
-            world.Init(field, player, 1,  1, 1, 1, 0);
-        	currentLevel = 1;
+            world.Init(field, player, 1, 1, 1, 1, 0);
+            currentLevel = 1;
             break;
-        } else if (choice == "2") {
-            auto saves = GameSaver::listSaves();
-            std::vector<std::string> valid;
-            for (size_t i = 0; i < saves.size(); ++i) {
-                const auto& f = saves[i];
-                try {
-                    GameSaver g(f);
-                    TokenGameState st = g.load();
-                    valid.push_back(f);
-                } catch (...) {
-                }
-            }
-
-            if (valid.empty()) {
-                std::cout << "No valid saves found.\n";
-                continue;
-            }
-
-            std::cout << "Available saves:\n";
-            for (size_t i = 0; i < valid.size(); ++i) {
-                std::cout << i+1 << ". " << valid[i] << "\n";
-            }
-            std::cout << "Choose number or 0 to cancel: ";
-
-            std::string sel;
-            std::getline(std::cin, sel);
-            int idx = -1;
-            try { idx = std::stoi(sel); } catch(...) { idx = -1; }
-            if (idx <= 0 || idx > static_cast<int>(valid.size())) {
-                std::cout << "Cancelled.\n";
-                continue;
-            }
-
-            const std::string chosen = valid[idx-1];
-            try {
-                GameSaver g(chosen);
-                TokenGameState st = g.load();
-            	currentLevel = st.level;
-                world.LoadState(field, player, st);
-                std::cout << "Loaded: " << chosen << "\n";
+        }
+        else if (choice == "2") {
+            if (LoadGameMenu(world, field, player)) {
                 break;
-            } catch (const LoadException& e) {
-                std::cout << "Cannot load selected save: " << e.what() << "\n";
-            } catch (const std::exception& e) {
-                std::cout << "Cannot load selected save: " << e.what() << "\n";
             }
-        } else if (choice == "3") {
-            std::cout << "Exiting.\n";
+        }
+        else if (choice == "3") {
+            DeleteSaveMenu();
+        }
+        else if (choice == "4") {
+            std::cout << "Goodbye!\n";
             std::exit(0);
-        } else {
-            std::cout << "Unknown choice.\n";
+        }
+        else {
+            std::cout << "Invalid choice!\n";
         }
     }
-
 }
 
-void GameLoop::globalCommandParser(World& world, Field& field, std::shared_ptr<Player> player) {
-	std::string input;
-    std::getline(std::cin, input);
+bool GameLoop::LoadGameMenu(World& world, Field& field, std::shared_ptr<Player>& player) {
+    auto saves = GameSaver::listSaves();
+    std::vector<std::string> valid;
 
-    if (input.empty())
-        return;
+    for (const auto& f : saves) {
+        try {
+            GameSaver g(f);
+            g.load();
+            valid.push_back(f);
+        } catch (...) {}
+    }
 
-    char command = input[0];
+    if (valid.empty()) {
+        std::cout << "No valid saves found.\n";
+        return false;
+    }
 
-    switch (command) {
-    	case 'S': {
-        	// Сохранение игры
-        	std::cout << "Enter save filename (e.g. save1.json): ";
-        	std::string fname;
-        	std::getline(std::cin, fname);
-        	if (fname.empty()) {
-        		std::cout << "Save cancelled.\n";
-        		break;
-        	}
+    std::cout << "\nAvailable saves:\n";
+    for (size_t i = 0; i < valid.size(); ++i) {
+        std::cout << i+1 << ". " << valid[i] << "\n";
+    }
+    std::cout << "0. Cancel\n";
+    std::cout << "Choose: ";
 
-        	try {
-        		// Получим состояние через World (используем world.SerializeState)
-        		TokenGameState state = world.SerializeState(field, player);
-        		state.level = currentLevel;
-        		GameSaver saver(fname);
-        		saver.save(state);
-        		GameSaver::addSaveToIndex(fname);
-        		std::cout << "Game saved to: " << fname << std::endl;
-        	} catch (const SaveException& e) {
-        		std::cout << "Save failed: " << e.what() << std::endl;
-        	} catch (const std::exception& e) {
-        		std::cout << "Save failed: " << e.what() << std::endl;
-        	}
-        	break;
-    	}
-        default:
-            break;
+    std::string sel;
+    std::getline(std::cin, sel);
+
+    int idx = -1;
+    try { idx = std::stoi(sel); } catch(...) { return false; }
+
+    if (idx <= 0 || idx > static_cast<int>(valid.size())) {
+        std::cout << "Cancelled.\n";
+        return false;
+    }
+
+    try {
+        GameSaver saver(valid[idx-1]);
+        TokenGameState st = saver.load();
+        currentLevel = st.level;
+        world.LoadState(field, player, st);
+        std::cout << "Loaded: " << valid[idx-1] << "\n";
+        return true;
+    } catch (const std::exception& e) {
+        std::cout << "Cannot load: " << e.what() << "\n";
+        return false;
     }
 }
 
+void GameLoop::DeleteSaveMenu() {
+    auto saves = GameSaver::listSaves();
+
+    if (saves.empty()) {
+        std::cout << "No saves to delete.\n";
+        return;
+    }
+
+    std::cout << "\nSaves:\n";
+    for (size_t i = 0; i < saves.size(); ++i) {
+        std::cout << i+1 << ". " << saves[i] << "\n";
+    }
+    std::cout << "0. Cancel\n";
+    std::cout << "Delete save #: ";
+
+    std::string sel;
+    std::getline(std::cin, sel);
+
+    int idx = -1;
+    try { idx = std::stoi(sel); } catch(...) {
+        std::cout << "Invalid input.\n";
+        return;
+    }
+
+    if (idx <= 0 || idx > static_cast<int>(saves.size())) {
+        std::cout << "Cancelled.\n";
+        return;
+    }
+
+    try {
+        std::filesystem::remove(saves[idx-1]);
+        std::cout << "Deleted: " << saves[idx-1] << "\n";
+
+        // Обновляем индекс
+        saves.erase(saves.begin() + idx - 1);
+        GameSaver::rebuildIndex(saves);
+    } catch (const std::exception& e) {
+        std::cout << "Delete failed: " << e.what() << "\n";
+    }
+}
 
 void GameLoop::StartLevel(World& world, Field& field, std::shared_ptr<Player> player) {
-	std::cout << "You have successfully completed the level!!\n";
-	std::cout << "Starting level ->  \n" + std::to_string(currentLevel++) + "\n\n\n";
+    std::cout << "\n╔════════════════════════════════════════╗\n";
+    std::cout << "║     LEVEL " << currentLevel << " COMPLETE!           ║\n";
+    std::cout << "╚════════════════════════════════════════╝\n\n";
 
-	field = Field(10 + 15 * (currentLevel)/50, 10 + 15 * (currentLevel)/50);
-
-	player->setHp(200);
+	// Удаление половины заклинаний
 	player->GetHand()->removeRandomHalf();
 
-	int enemies_c, build_c, tower_c;
+    // ПРОКАЧКА
+    LevelUpMenu(player);
+	player->setHp(player->GetMaxHp());
+    // Переход на новый уровень
+    currentLevel++;
 
-	GenerateLevel(enemies_c, build_c, tower_c);
+    std::cout << "\n>>> Starting Level " << currentLevel << " <<<\n\n";
 
-	world.Init(field, player, currentLevel,  enemies_c, build_c, tower_c, 0);
+    // Новое поле
+    int new_size = std::min(10 + currentLevel, 25);
+    field = Field(new_size, new_size);
 
+
+
+    // Генерация врагов
+    int enemies_c, build_c, tower_c;
+    GenerateLevel(enemies_c, build_c, tower_c);
+
+    world.Init(field, player, currentLevel, enemies_c, build_c, tower_c, 0);
+
+    std::cout << "Enemies: " << enemies_c << " | Buildings: " << build_c
+              << " | Towers: " << tower_c << "\n";
+}
+
+void GameLoop::LevelUpMenu(std::shared_ptr<Player>& player) {
+    std::cout << "\n╔════════════════════════════════════════╗\n";
+    std::cout << "║          LEVEL UP!                    ║\n";
+    std::cout << "╚════════════════════════════════════════╝\n";
+    std::cout << "\nChoose upgrade:\n";
+    std::cout << "1. +50 Max HP\n";
+    std::cout << "2. +20 Weapon Damage\n";
+    std::cout << "3. Upgrade Random Spell (x2)\n";
+    std::cout << "4. Add Random Spell to Hand\n";
+    std::cout << "Choice: ";
+
+    std::string choice;
+    std::getline(std::cin, choice);
+
+    if (choice == "1") {
+        // Увеличение HP (нужно добавить макс HP в Player)
+    	player->addMaxHp(50);
+        std::cout << "✓ Max HP increased by 50!\n";
+    }
+    else if (choice == "2") {
+        // Увеличение урона через score (костыль, но работает)
+        player->addScore(100);
+        std::cout << "✓ Weapon damage increased! (+100 score bonus)\n";
+    }
+    else if (choice == "3") {
+        auto hand = player->GetHand();
+        if (hand->size() > 0) {
+            std::random_device rd;
+            std::mt19937 gen(rd());
+            std::uniform_int_distribution<> dis(0, hand->size() - 1);
+            size_t idx = dis(gen);
+
+            auto spell = hand->getSpell(idx);
+            if (spell) {
+                spell->upgrade(2);
+                std::cout << "✓ Random spell upgraded (x2 power)!\n";
+            }
+        } else {
+            std::cout << "✗ No spells to upgrade! Getting +50 HP instead.\n";
+            player->setHp(player->GetHealth() + 50);
+        }
+    }
+    else if (choice == "4") {
+        player->GetHand()->setRandomSpell();
+        std::cout << "✓ Random spell added to hand!\n";
+    }
+    else {
+        std::cout << "Invalid choice! No upgrade applied.\n";
+    }
 }
 
 bool GameLoop::CheckLevelComplete(Field& field) {
-	int res = field.getNotFriendlyCount();
-	return res == 0;
+    return field.getNotFriendlyCount() == 0;
 }
 
 void GameLoop::GenerateLevel(int& enemy, int& buildings, int& towers) {
-	enemy = currentLevel/4 + 3;
-	buildings = currentLevel/6 + 1;
-	towers = currentLevel/6 + 1;
+    enemy = currentLevel + 2;
+    buildings = currentLevel / 2 + 1;
+    towers = currentLevel / 3 + 1;
 }

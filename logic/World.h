@@ -23,8 +23,12 @@ public:
 	TokenGameState SerializeState(Field& field, std::shared_ptr<Player> player);
 	void LoadState(Field& field, std::shared_ptr<Player>& player, const TokenGameState& state);
 
+	void SetLevel(int lvl) { level_ = lvl; }
+	int GetLevel() const { return level_; }
 
 private:
+	int level_;
+
 	EntityManager<Enemy> enemyManager_;
 	EnemyBuildingManager buildingManager_;
 	EnemyTowerManager towerManager_;

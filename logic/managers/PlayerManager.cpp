@@ -124,9 +124,9 @@ bool PlayerManager::CastSpell(std::shared_ptr<Player> player, size_t spell_index
 	return result;
 }
 
-
 void PlayerManager::ManagePlayerTurn(std::shared_ptr<Player> player, Field& field, World& world) {
     std::string input;
+    std::cout << "\n> ";
     std::getline(std::cin, input);
 
     if (input.empty())
@@ -136,23 +136,41 @@ void PlayerManager::ManagePlayerTurn(std::shared_ptr<Player> player, Field& fiel
 
     switch (command) {
         case 'w':
-            Move(player, MoveType::Forward, field);
+            if (Move(player, MoveType::Forward, field)) {
+                std::cout << "Moved forward.\n";
+            } else {
+                std::cout << "Cannot move forward!\n";
+            }
             break;
 
         case 's':
-            Move(player, MoveType::Back, field);
+            if (Move(player, MoveType::Back, field)) {
+                std::cout << "Moved back.\n";
+            } else {
+                std::cout << "Cannot move back!\n";
+            }
             break;
 
         case 'a':
-            Move(player, MoveType::Left, field);
+            if (Move(player, MoveType::Left, field)) {
+                std::cout << "Moved left.\n";
+            } else {
+                std::cout << "Cannot move left!\n";
+            }
             break;
 
         case 'd':
-            Move(player, MoveType::Right, field);
+            if (Move(player, MoveType::Right, field)) {
+                std::cout << "Moved right.\n";
+            } else {
+                std::cout << "Cannot move right!\n";
+            }
             break;
 
         case 'r':
-            ChangeAttackMode(player);
+            if (ChangeAttackMode(player)) {
+                std::cout << "Attack mode changed!\n";
+            }
             break;
 
         case 'b':
@@ -160,64 +178,123 @@ void PlayerManager::ManagePlayerTurn(std::shared_ptr<Player> player, Field& fiel
             break;
 
         case 'e': {
-            int x, y;
             std::stringstream ss(input.substr(1));
+            int x, y;
             if (ss >> x >> y) {
-                bool result = Attack(player, x, y, field, world);
-                std::cout << (result ? "Attack successful!" : "Attack failed!") << std::endl;
+                if (Attack(player, x, y, field, world)) {
+                    std::cout << "Attack successful!\n";
+                } else {
+                    std::cout << "Attack failed! (out of range or no target)\n";
+                }
             } else {
-                std::cout << "Invalid attack coordinates. Use: e X Y" << std::endl;
+                std::cout << "Usage: e X Y\n";
             }
             break;
         }
 
-    	case 'q': {
-        	auto hand = player->GetHand();
+        case 'q': {
+            auto hand = player->GetHand();
+            if (hand->size() == 0) {
+                std::cout << "No spells in hand!\n";
+                break;
+            }
 
-        	std::cout << "Your spells:\n";
-        	for (size_t i = 0; i < hand->size(); ++i) {
-        		auto spell = hand->getSpell(i);
-        		std::cout << i << ": ";
-        		switch (spell->getSpellType()) {
-        			case SpellType::DirDmg: std::cout << "DirDamage"; break;
-        			case SpellType::AreaDmg: std::cout << "AreaDamage"; break;
-        			case SpellType::Enhancement: std::cout << "Enhancement"; break;
-        			case SpellType::Summon: std::cout << "Summon"; break;
-        			case SpellType::Trap: std::cout << "Trap"; break;
-        			default: std::cout << "Unknown"; break;
-        		}
-        		std::cout << "\n";
-        	}
+            std::cout << "\nYour spells:\n";
+            for (size_t i = 0; i < hand->size(); ++i) {
+                auto spell = hand->getSpell(i);
+                std::cout << i << ". ";
+                switch (spell->getSpellType()) {
+                    case SpellType::DirDmg: std::cout << "DirDamage"; break;
+                    case SpellType::AreaDmg: std::cout << "AreaDamage"; break;
+                    case SpellType::Enhancement: std::cout << "Enhancement"; break;
+                    case SpellType::Summon: std::cout << "Summon"; break;
+                    case SpellType::Trap: std::cout << "Trap"; break;
+                    default: std::cout << "Unknown"; break;
+                }
+                std::cout << "\n";
+            }
 
-        	std::string line;
-        	int spell_idx;
-        	std::cout << "Enter spell index: ";
-        	std::getline(std::cin, line);
-        	std::stringstream(line) >> spell_idx;
+            int spell_idx;
+            std::cout << "Spell index: ";
+            std::string line;
+            std::getline(std::cin, line);
 
-        	if (spell_idx < 0 || spell_idx >= static_cast<int>(hand->size())) {
-        		std::cout << "Invalid index!\n";
+            try {
+                spell_idx = std::stoi(line);
+            } catch (...) {
+                std::cout << "Invalid index!\n";
+                break;
+            }
+
+            if (spell_idx < 0 || spell_idx >= static_cast<int>(hand->size())) {
+                std::cout << "Invalid index!\n";
+                break;
+            }
+
+            int x, y;
+            std::cout << "Target X Y: ";
+            std::getline(std::cin, line);
+            std::stringstream ss(line);
+
+            if (!(ss >> x >> y)) {
+                std::cout << "Invalid coordinates!\n";
+                break;
+            }
+
+            if (CastSpell(player, spell_idx, x, y, field, world)) {
+                std::cout << "Spell cast successfully!\n";
+                hand->removeSpell(spell_idx);
+            } else {
+                std::cout << "Spell cast failed!\n";
+            }
+            break;
+        }
+
+    	case 'S': {
+        	std::cout << "Enter save name (without .json): ";
+        	std::string name;
+        	std::getline(std::cin, name);
+
+        	// trim
+        	while (!name.empty() && isspace(name.front())) name.erase(name.begin());
+        	while (!name.empty() && isspace(name.back())) name.pop_back();
+
+        	if (name.empty()) {
+        		std::cout << "Save cancelled.\n";
         		break;
         	}
 
-        	int x, y;
-        	std::cout << "Enter target X Y: ";
-        	std::getline(std::cin, line);
-        	std::stringstream(line) >> x >> y;
+        	// если вдруг ввели .json — убираем
+        	if (name.size() > 5 && name.substr(name.size() - 5) == ".json")
+        		name = name.substr(0, name.size() - 5);
 
-        	bool result = CastSpell(player, spell_idx, x, y, field, world);
-        	std::cout << (result ? "Spell cast!" : "Spell failed!") << std::endl;
+        	std::string filename = name + ".json";
 
-        	hand->removeSpell(spell_idx);
+        	try {
+        		TokenGameState state = world.SerializeState(field, player);
+
+        		GameSaver saver(filename);
+        		saver.save(state);
+        		GameSaver::addSaveToIndex(filename);
+
+        		std::cout << "Game saved to " << filename << "\n";
+        	}
+        	catch (const std::exception& e) {
+        		std::cout << "Save failed: " << e.what() << "\n";
+        	}
+
         	break;
     	}
 
+
         default:
-            std::cout << "Unknown command: " << command << std::endl;
-            std::cout << "Available commands: w/a/s/d (move), r (change mode), b (buy), e X Y (attack), q I X Y (cast spell)" << std::endl;
+            std::cout << "Unknown command: " << command << "\n";
+            std::cout << "Commands: w/a/s/d, r, b, e X Y, q, S\n";
             break;
     }
 }
+
+
 std::shared_ptr<Entity> PlayerManager::findTargetAt(int x, int y, Field& field, World& world) {
     int x_e, y_e;
 
