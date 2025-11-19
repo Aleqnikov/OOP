@@ -1,10 +1,23 @@
+// entites/Weapon.cpp
 #include "Weapon.h"
 #include <algorithm>
+
+Weapon::Weapon(int level)
+	: Weapon(40 + level * 15, 2, AttackMod::RangeCombat) {}
 
 Weapon::Weapon(int damage, int attack_radius, AttackMod mode)
 	: base_damage_(damage > 0 ? damage : 50),
 	  base_attack_radius_(attack_radius > 0 ? attack_radius : 2),
 	  attack_mode_(mode) {}
+
+std::shared_ptr<Weapon> Weapon::Upgrade() const {
+	return std::make_shared<Weapon>(
+		base_damage_ + 20,
+		base_attack_radius_,
+		attack_mode_
+	);
+}
+
 
 void Weapon::ChangeAttackMod() {
 	if (attack_mode_ == AttackMod::RangeCombat) {
@@ -23,8 +36,7 @@ int Weapon::GetDamage() const {
 
 int Weapon::GetAttackRadius() const {
 	if (attack_mode_ == AttackMod::CloseCombat) {
-		int reduced_radius = base_attack_radius_ / 2;
-		return std::max(reduced_radius, 1);
+		return std::max(base_attack_radius_ / 2, 1);
 	}
 	return base_attack_radius_;
 }

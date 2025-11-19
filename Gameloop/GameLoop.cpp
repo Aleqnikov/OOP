@@ -167,27 +167,20 @@ void GameLoop::DeleteSaveMenu() {
 
 void GameLoop::StartLevel(World& world, Field& field, std::shared_ptr<Player> player) {
     std::cout << "\n╔════════════════════════════════════════╗\n";
-    std::cout << "║     LEVEL " << currentLevel << " COMPLETE!           ║\n";
+    std::cout << "║     LEVEL " << currentLevel << " COMPLETE!                    ║\n";
     std::cout << "╚════════════════════════════════════════╝\n\n";
 
-	// Удаление половины заклинаний
 	player->GetHand()->removeRandomHalf();
 
-    // ПРОКАЧКА
     LevelUpMenu(player);
 	player->setHp(player->GetMaxHp());
-    // Переход на новый уровень
     currentLevel++;
 
     std::cout << "\n>>> Starting Level " << currentLevel << " <<<\n\n";
 
-    // Новое поле
     int new_size = std::min(10 + currentLevel, 25);
     field = Field(new_size, new_size);
 
-
-
-    // Генерация врагов
     int enemies_c, build_c, tower_c;
     GenerateLevel(enemies_c, build_c, tower_c);
 
@@ -199,7 +192,7 @@ void GameLoop::StartLevel(World& world, Field& field, std::shared_ptr<Player> pl
 
 void GameLoop::LevelUpMenu(std::shared_ptr<Player>& player) {
     std::cout << "\n╔════════════════════════════════════════╗\n";
-    std::cout << "║          LEVEL UP!                    ║\n";
+    std::cout << "║          LEVEL UP!                     ║\n";
     std::cout << "╚════════════════════════════════════════╝\n";
     std::cout << "\nChoose upgrade:\n";
     std::cout << "1. +50 Max HP\n";
@@ -217,9 +210,14 @@ void GameLoop::LevelUpMenu(std::shared_ptr<Player>& player) {
         std::cout << "✓ Max HP increased by 50!\n";
     }
     else if (choice == "2") {
-        // Увеличение урона через score (костыль, но работает)
-        player->addScore(100);
-        std::cout << "✓ Weapon damage increased! (+100 score bonus)\n";
+    	auto old_weapon = player->GetWeapon();
+    	auto new_weapon = old_weapon->Upgrade();
+
+    	player->UpgradeWeapon(new_weapon);
+
+    	std::cout << "✓ Weapon upgraded! New damage: "
+				  << new_weapon->GetDamage() << " (range mode) / "
+				  << new_weapon->GetDamage() * 2 << " (melee mode)\n";
     }
     else if (choice == "3") {
         auto hand = player->GetHand();

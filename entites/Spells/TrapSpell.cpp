@@ -12,7 +12,7 @@ void TrapSpell::upgrade(int coeficient){
 
 
 bool TrapSpell::use(const SpellContext& context) {
-	if (!context.cell || !context.field ||  !context.base_x || !context.base_y) {
+	if (!context.cell || !context.field) {
 		return false;
 	}
 

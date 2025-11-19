@@ -34,6 +34,11 @@ public:
 	void addMaxHp(int);
 	int GetMaxHp();
 
+	std::shared_ptr<Weapon> GetWeapon() const { return weapon_; }
+	void UpgradeWeapon(std::shared_ptr<Weapon> new_weapon) {
+		weapon_ = new_weapon;
+	}
+
 private:
 	int score_;
 	std::shared_ptr<Weapon> weapon_;
