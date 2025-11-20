@@ -88,34 +88,26 @@ void World::LoadState(Field& field, std::shared_ptr<Player>& player, const Token
     int W = state.field.width;
     int H = state.field.height;
 
-    // создаём поле нужного размера (без произвольной рандомной генерации)
-    field = Field(W, H, 0, 0); // у нас сразу есть контейнер field_
+    field = Field(W, H, 0, 0);
 
-    // обнулим менеджеры (чтобы не было остатков)
-    enemyManager_ = EntityManager<Enemy>();
+	enemyManager_ = EntityManager<Enemy>();
     allyManager_ = EntityManager<Ally>();
     buildingManager_ = EnemyBuildingManager();
     towerManager_ = EnemyTowerManager();
 
-    // Воссоздаём клетки, события и сущности
     for (int y = 0; y < H; ++y) {
         for (int x = 0; x < W; ++x) {
             const TokenCell& token_cell = state.field.cells[y][x];
 
-            // 1) Воссоздаём тип клетки через публичный API Field::ReplaceCellWithType
             field.ReplaceCellWithType(x, y, token_cell.type);
 
-            // Получаем указатель на клетку через публичный API
             auto cell = field.GetCell(x, y);
 
-            // 2) Воссоздаём Event
             if (token_cell.has_event && token_cell.event.type == "Trap") {
                 auto trap = std::make_shared<TrapEvent>(token_cell.event.damage);
                 cell->SetEvent(trap);
             }
-
-            // 3) Воссоздаём Entity
-            if (token_cell.has_entity) {
+        	if (token_cell.has_entity) {
                 std::shared_ptr<Entity> entity;
 
                 if (token_cell.entity.type == "Enemy") {
@@ -149,14 +141,9 @@ void World::LoadState(Field& field, std::shared_ptr<Player>& player, const Token
                     entity->CauseDamage(100 - token_cell.entity.hp);
                     towerManager_.AddEntity(std::dynamic_pointer_cast<EnemyTower>(entity));
                 }
-
-                // Только если entity создана — поставим её в клетку через public API
-                if (entity) {
-                    // field.SetEntity проверит корректность позиции / impassable / занятость
-                    // если SetEntity вернёт false — это может означать, что в сейве была неконсистентность (например impassable+has_entity)
+            	if (entity) {
                     bool placed = field.SetEntity(entity, x, y);
                     if (!placed) {
-                        // В редких случаях (импасабы), пробуем форсировать установку: если клетка импассабл — заменим её на обычную Cell и установим
                         if (field.GetCell(x, y)->GetName() == "Impassable") {
                             field.ReplaceCellWithType(x, y, "Cell");
                             field.SetEntity(entity, x, y);
@@ -167,8 +154,15 @@ void World::LoadState(Field& field, std::shared_ptr<Player>& player, const Token
         }
     }
 
-    player = Player::deserialise(state.player);
-    field.SetEntity(player, state.player_x, state.player_y);
+	level_ = state.level;
+	player = Player::deserialise(state.player);
+
+	bool spawned = field.SetEntity(player, state.player_x, state.player_y);
+	if (!spawned) {
+		std::cerr << "Warning: Player spawn failed at (" << state.player_x << "," << state.player_y
+				  << "). Forcing spawn at (0,0)\n";
+		field.SetEntity(player, 0, 0);
+	}
 }
 
 

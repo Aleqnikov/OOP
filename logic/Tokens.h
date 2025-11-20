@@ -28,6 +28,7 @@ struct TokenWeapon {
 struct TokenPlayer {
 	int hp;
 	int score;
+	int max_hp;
 	TokenWeapon weapon;
 	TokenHand hand;
 };

@@ -260,7 +260,8 @@ void GameLoop::LevelUpMenu(std::shared_ptr<Player>& player) {
             }
         } else {
             std::cout << "✗ No spells to upgrade! Getting +50 HP instead.\n";
-            player->setHp(player->GetHealth() + 50);
+        	player->addMaxHp(50);
+        	player->setHp(player->GetMaxHp());
         }
     }
     else if (choice == "4") {
@@ -277,7 +278,6 @@ bool GameLoop::CheckLevelComplete(Field& field) {
 }
 
 void GameLoop::GenerateLevel(int& enemy, int& buildings, int& towers) {
-	// Ограничиваем максимальный уровень для предотвращения переполнения
 	const int MAX_LEVEL = 100;
 	int safeLevel = std::min(currentLevel, MAX_LEVEL);
 

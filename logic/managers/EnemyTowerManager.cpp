@@ -56,7 +56,6 @@ bool EnemyTowerManager::EnemiesTowersTurn(Field& field) {
 			context.field = &field;
 
 			spell->use(context);
-			std::cout << "52" << std::endl;
 		}
 	}
 	return flag;

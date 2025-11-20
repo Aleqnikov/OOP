@@ -3,9 +3,7 @@
 #include <iostream>
 
 Hand::Hand(int limit)
-	: limit_(std::max(limit, 5)), upgrade_coef_(0) {
-		setRandomSpell();
-	}
+	: limit_(std::max(limit, 5)), upgrade_coef_(0) {}
 
 Hand::Hand()
 	: Hand(5) {}
@@ -110,4 +108,14 @@ void Hand::removeRandomHalf() {
 		size_t index = dist(gen);
 		spells_.erase(spells_.begin() + index);
 	}
+}
+
+void Hand::GiveStartingSpellIfNewGame() {
+	if (spells_.empty()) {
+		setRandomSpell();
+	}
+}
+
+void Hand::clear() {
+	spells_.clear();
 }

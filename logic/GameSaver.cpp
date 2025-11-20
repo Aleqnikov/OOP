@@ -1,4 +1,3 @@
-// logic/GameSaver.cpp
 #include "GameSaver.h"
 #include <filesystem>
 #include <iostream>
@@ -6,7 +5,7 @@
 GameSaver::GameSaver(const std::string& fileName) : fileName_(fileName) {}
 
 void GameSaver::save(const TokenGameState& state) {
-    // RAII: ofstream автоматически закроется при выходе из области видимости
+
     std::ofstream file(fileName_);
     
     if (!file.is_open()) {
@@ -16,7 +15,7 @@ void GameSaver::save(const TokenGameState& state) {
     try {
         json j;
 
-        // === PLAYER ===
+
         j["player"]["hp"] = state.player.hp;
         j["player"]["score"] = state.player.score;
         j["player"]["x"] = state.player_x;
@@ -237,63 +236,51 @@ void GameSaver::checkCorrectFile(const json& j) {
 static const std::string kIndexFile = ".saves_index.json";
 
 std::vector<std::string> GameSaver::listSaves() {
-    std::vector<std::string> res;
-    try {
-        std::ifstream ifs(kIndexFile);
-        if (!ifs) return res;
-        
-        json j = json::parse(ifs);
-        if (!j.is_array()) return res;
-        
-        for (const auto& it : j) {
-            if (it.is_string()) res.push_back(it.get<std::string>());
-        }
-    } catch (const std::exception& e) {
-        std::cerr << "Warning: Failed to read saves index: " << e.what() << "\n";
-    }
-    return res;
+	std::vector<std::string> res;
+	try {
+		std::ifstream ifs(kIndexFile);
+		if (!ifs) return res;
+
+		json j;
+		try {
+			j = json::parse(ifs);
+		} catch (...) {
+			return res;
+		}
+
+		if (!j.is_array()) return res;
+
+		for (const auto& it : j) {
+			if (it.is_string()) res.push_back(it.get<std::string>());
+		}
+	} catch (...) {}
+	return res;
 }
 
 void GameSaver::addSaveToIndex(const std::string& saveFile) {
-    try {
-        json j = json::array();
-        
-        std::ifstream ifs(kIndexFile);
-        if (ifs.is_open()) {
-            try { 
-                j = json::parse(ifs); 
-            } catch (const json::parse_error&) { 
-                j = json::array(); 
-            }
-        }
-        ifs.close();
-        
-        std::vector<std::string> names;
-        for (const auto& it : j) {
-            if (it.is_string()) names.push_back(it.get<std::string>());
-        }
+	try {
+		json j = json::array();
+		{
+			std::ifstream ifs(kIndexFile);
+			if (ifs.is_open()) {
+				try { j = json::parse(ifs); } catch (...) { j = json::array(); }
+			}
+		}
 
-        if (std::find(names.begin(), names.end(), saveFile) == names.end()) {
-            names.push_back(saveFile);
-        }
-        
-        json out = json::array();
-        for (const auto& n : names) out.push_back(n);
-        
-        std::ofstream ofs(kIndexFile, std::ios::trunc);
-        if (!ofs.is_open()) {
-            throw FileOpenError(kIndexFile);
-        }
-        
-        ofs << out.dump(2);
-        
-        if (!ofs.good()) {
-            throw FileWriteError(kIndexFile);
-        }
-        
-    } catch (const std::exception& e) {
-        std::cerr << "Warning: Failed to update saves index: " << e.what() << "\n";
-    }
+		std::vector<std::string> existing;
+		for (const auto& v : j) if (v.is_string()) existing.push_back(v);
+
+		if (std::find(existing.begin(), existing.end(), saveFile) == existing.end()) {
+			existing.push_back(saveFile);
+		}
+
+		json out = json::array();
+		for (const auto& s : existing) out.push_back(s);
+
+		std::ofstream ofs(kIndexFile, std::ios::trunc);
+		if (ofs.is_open()) ofs << out.dump(2);
+	} catch (...) {
+	}
 }
 
 void GameSaver::rebuildIndex(const std::vector<std::string>& saves) {

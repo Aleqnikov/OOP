@@ -41,7 +41,7 @@ bool SummSpell::use(const SpellContext& context) {
 			auto ally = std::make_shared<Ally>();
 			if (context.field->SetEntity(ally, x, y)) {
 				spawned = true;
-				break; // Прерываем внутренний цикл после спавна
+				break;
 			}
 		}
 	}

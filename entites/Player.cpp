@@ -4,7 +4,10 @@ Player::Player()
 	: Entity(),
 	  score_(0),
 	  max_hp_(100),
-	  weapon_(std::make_shared<Weapon>()) {}
+	  weapon_(std::make_shared<Weapon>()) {
+	hand_ = std::make_shared<Hand>(5);
+	hand_->GiveStartingSpellIfNewGame();
+}
 
 Player::Player(int hp, int damage, int attack_radius)
 	: Entity(),
@@ -13,6 +16,7 @@ Player::Player(int hp, int damage, int attack_radius)
 	  weapon_(std::make_shared<Weapon>(damage, attack_radius))
 {
 	hand_ = std::make_shared<Hand>(5);
+	hand_->GiveStartingSpellIfNewGame();
 	hp_ = hp > 0 ? hp : 100;
 }
 
@@ -58,6 +62,7 @@ TokenPlayer Player::serialis() const {
 
 	token.hp = hp_;
 	token.score = score_;
+	token.max_hp = max_hp_;
 
 	// Weapon
 	token.weapon.base_damage = weapon_->GetDamage();
@@ -82,22 +87,21 @@ TokenPlayer Player::serialis() const {
 
 
 std::shared_ptr<Player> Player::deserialise(const TokenPlayer& token) {
-	// Создаем игрока
 	auto player = std::make_shared<Player>(token.hp, token.weapon.base_damage, token.weapon.base_attack_radius);
 
-	// Устанавливаем score
 	player->addScore(token.score);
 
-	// Восстанавливаем режим атаки
 	if (token.weapon.attack_mode == "Close") {
 		player->ChangeAttackMod();
 	}
 
-	// Очищаем руку и восстанавливаем спеллы
-	auto hand = player->GetHand();
-	while (hand->size() > 0) {
-		hand->removeSpell(0);
+	if (token.max_hp > 100) {
+		player->max_hp_ = token.max_hp;
 	}
+
+	auto hand = player->GetHand();
+
+	hand->clear();
 
 	for (const auto& spell_token : token.hand.spells) {
 		std::shared_ptr<ISpell> spell;

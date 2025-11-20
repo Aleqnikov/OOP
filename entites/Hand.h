@@ -32,6 +32,8 @@ public:
 	void setRandomSpell();
 	void removeRandomHalf();
 
+	void GiveStartingSpellIfNewGame();
+	void clear();
 private:
 	std::vector<std::shared_ptr<ISpell>> spells_;
 	int limit_;

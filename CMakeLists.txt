@@ -35,7 +35,6 @@ set(SOURCE_FILES
         logic/World.cpp
         Gameloop/GameLoop.cpp
         Gameloop/Visualizer.cpp
-
         map/Field.cpp
         map/cells/Cell.cpp
         map/cells/ImpassableCell.cpp
